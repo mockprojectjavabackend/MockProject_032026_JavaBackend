@@ -15,5 +15,6 @@ public class SampleController {
 
     @GetMapping("/branch-name")
     public ResponseEntity<String> getBranchName() {
-        return ResponseEntity.ok("Branch name: Feature sample");
+        return ResponseEntity.ok("Branch name: develop");
     }}
+
