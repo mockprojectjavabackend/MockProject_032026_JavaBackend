@@ -12,4 +12,9 @@ public class SampleController {
     public ResponseEntity<String> getSampleString() {
         return ResponseEntity.ok("Project name: MockProject_032026_JavaBackend");
     }
+
+    @GetMapping("/branch-name")
+    public ResponseEntity<String> getBranchName() {
+        return ResponseEntity.ok("Branch name: feature/sample01");
+    }
 }
