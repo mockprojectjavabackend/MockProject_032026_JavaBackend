@@ -12,4 +12,9 @@ public class TestController {
     public ResponseEntity<String> testApi() {
         return ResponseEntity.ok("This is a test API endpoint.");
     }
+
+    @GetMapping("/vhaiTestApi")
+    public ResponseEntity<String> vhaiTestApi() {
+        return ResponseEntity.ok("vhaiTestApi");
+    }
 }
