@@ -1,5 +1,10 @@
 package com.nhom03.mockproject.sample.weathercrud.model;
 
+/*
+Date         Author            Desc
+3-17-2026    Snoopyze(Minh)    Create
+ */
+
 public class Weather {
     private int id;
     private String city;
