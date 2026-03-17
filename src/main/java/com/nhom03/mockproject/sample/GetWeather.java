@@ -10,6 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/*
+Date         Author            Desc
+3-16-2026    Snoopyze(Minh)    Create
+ */
+
 @RestController
 public class GetWeather {
     private final String API_KEY = "c6fcab79ab7a6ac41eba1ed28b4663cb";
@@ -18,7 +23,7 @@ public class GetWeather {
         RestTemplate restTemplate = new RestTemplate();
         String url = UriComponentsBuilder
                 .fromHttpUrl("https://api.openweathermap.org/data/2.5/weather")
-                .queryParam("q", "Da Nang")
+                .queryParam("q", "Danang,VN")
                 .queryParam("appid", API_KEY)
                 .queryParam("units", "metric")
                 .toUriString();
