@@ -1,3 +1,16 @@
 spring:
   application:
     name: mockproject
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/profile_db
+    username: root
+    password: 123456
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
