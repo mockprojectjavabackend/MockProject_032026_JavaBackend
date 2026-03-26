@@ -1,1 +1,3 @@
-spring.application.name=notary_common
+spring:
+  application:
+    name: notary_common
