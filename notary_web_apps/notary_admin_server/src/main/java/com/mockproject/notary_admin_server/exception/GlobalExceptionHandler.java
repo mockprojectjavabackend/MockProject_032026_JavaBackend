@@ -2,7 +2,7 @@ package com.mockproject.notary_admin_server.exception;
 
 import java.util.Map;
 
-import com.nhom03.mockproject.dto.ApiResponse;
+import com.mockproject.notary_admin_server.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

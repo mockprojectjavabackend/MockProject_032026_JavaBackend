@@ -1,6 +1,6 @@
 package com.mockproject.notary_admin_server.exception.errorCode;
 
-import com.nhom03.mockproject.exception.ErrorCode;
+import com.mockproject.notary_admin_server.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.mockproject.notary_common.dto;
+package com.mockproject.notary_admin_server.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
