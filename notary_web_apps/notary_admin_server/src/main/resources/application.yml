@@ -3,9 +3,9 @@ spring:
     name: notary_admin_server
 
   datasource:
-    url: jdbc:mysql://localhost:3306/notary_db
-    username: root
-    password: 12345
+    url: ${DB_URL:jdbc:mysql://localhost:3306/notary_db}
+    username: ${USERNAME_DB}
+    password: ${PASSWORD_DB}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -17,7 +17,13 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
+security:
+  public-endpoints: ${PUBLIC_ENDPOINTS:/oauth2/**,/auth/**,/api/v1/auth/**}
+
+jwt:
+  signerKey: ${JWT_SIGNER_KEY}
+
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
-    context-path: "/server"
+    context-path: /api/v1
