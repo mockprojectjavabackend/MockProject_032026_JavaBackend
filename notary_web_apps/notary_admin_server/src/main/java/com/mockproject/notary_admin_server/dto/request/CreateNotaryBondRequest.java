@@ -6,11 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record CreateNotaryBondRequest(
-                @JsonProperty("provider_name") String providerName,
-                @JsonProperty("bond_amount") BigDecimal bondAmount,
-                @JsonProperty("effective_date") LocalDate effectiveDate,
-                @JsonProperty("expiration_date") LocalDate expirationDate,
-                @JsonProperty("file_url") String fileUrl) {
+        @JsonProperty("provider_name") @NotBlank(message = "provider_name is required") String providerName,
+        @JsonProperty("bond_amount") @NotNull(message = "bond_amount is required") BigDecimal bondAmount,
+        @JsonProperty("effective_date") @NotNull(message = "effective_date is required") LocalDate effectiveDate,
+        @JsonProperty("expiration_date") @NotNull(message = "expiration_date is required") LocalDate expirationDate,
+        @JsonProperty("file_url") @NotBlank(message = "file_url is required") String fileUrl) {
 }

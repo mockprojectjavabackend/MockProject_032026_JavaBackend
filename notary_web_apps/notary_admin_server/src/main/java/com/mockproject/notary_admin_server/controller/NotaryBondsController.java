@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
@@ -53,7 +54,7 @@ public class NotaryBondsController {
 
     @PostMapping("/{id}/bond")
     public ResponseEntity<ApiResponse<NotaryBondResponse>> createBond(@PathVariable UUID id,
-            @RequestBody CreateNotaryBondRequest request) {
+            @Valid @RequestBody CreateNotaryBondRequest request) {
         NotaryBonds createdBond = notaryBondsService.createBond(
                 id,
                 request.providerName(),
@@ -68,7 +69,7 @@ public class NotaryBondsController {
 
     @PutMapping("/{id}/bond")
     public ResponseEntity<ApiResponse<NotaryBondResponse>> updateBond(@PathVariable UUID id,
-            @RequestBody CreateNotaryBondRequest request) {
+            @Valid @RequestBody CreateNotaryBondRequest request) {
         NotaryBonds updatedBond = notaryBondsService.updateBond(
                 id,
                 request.providerName(),

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class NotaryInsuranceController {
 
     @PostMapping("/{id}/insurance")
     public ResponseEntity<ApiResponse<NotaryInsuranceResponse>> createInsurance(@PathVariable UUID id,
-            @RequestBody CreateNotaryInsuranceRequest request) {
+            @Valid @RequestBody CreateNotaryInsuranceRequest request) {
         NotaryInsurance createdInsurance = notaryInsuranceService.createInsurance(
                 id,
                 request.providerName(),
@@ -67,7 +68,7 @@ public class NotaryInsuranceController {
 
     @PutMapping("/{id}/insurance")
     public ResponseEntity<ApiResponse<NotaryInsuranceResponse>> updateInsurance(@PathVariable UUID id,
-            @RequestBody CreateNotaryInsuranceRequest request) {
+            @Valid @RequestBody CreateNotaryInsuranceRequest request) {
         NotaryInsurance updatedInsurance = notaryInsuranceService.updateInsurance(
                 id,
                 request.providerName(),
