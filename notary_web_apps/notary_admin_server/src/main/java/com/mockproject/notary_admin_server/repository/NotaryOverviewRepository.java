@@ -41,17 +41,15 @@ public interface NotaryOverviewRepository extends JpaRepository<Notary, UUID> {
      *         [3] Insurance (i)
      *         [4] Document (d)
      *         [5] NotaryServiceArea (sa)
-     *         [6] Capability (cap)
      */
     @Query("""
-    SELECT n, c, b, i, d, sa, cap
+    SELECT n, c, b, i, d, sa
     FROM Notary n
     LEFT JOIN n.commissions c
     LEFT JOIN n.bonds b
     LEFT JOIN n.insurances i
     LEFT JOIN n.documents d
     LEFT JOIN NotaryServiceArea sa ON sa.notary.id = n.id
-    LEFT JOIN n.capability cap
     WHERE n.id = :notaryId
     """)
     List<Object[]> getNatoryOverview(@Param("notaryId") UUID notaryId);

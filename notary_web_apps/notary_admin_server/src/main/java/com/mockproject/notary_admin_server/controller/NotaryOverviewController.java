@@ -10,10 +10,19 @@ import com.mockproject.notary_admin_server.service.NotaryOverviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * NotaryOverviewController
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 26-03-2026      DangQuoc      create
+ */
 @RestController
 @RequestMapping("/api/notaries")
 public class NotaryOverviewController {
-
     private final NotaryOverviewService notaryOverviewService;
 
     public NotaryOverviewController(NotaryOverviewService notaryOverviewService) {
@@ -25,13 +34,13 @@ public class NotaryOverviewController {
         return ResponseEntity.ok(ApiSuccessResponse.ok(notaryOverviewService.getNotaryOverview(notary_id)));
     }
 
-    @PatchMapping("/admin/{notary_id}/deactivate")
-    public ResponseEntity<ApiSuccessResponse<NotaryStatusResponse>> deactivateNotary(@PathVariable UUID notary_id){
-        return ResponseEntity.ok(ApiSuccessResponse.ok(notaryOverviewService.deactivateNotary(notary_id)));
-    }
-
     @GetMapping("/{notary_id}")
     public ResponseEntity<ApiSuccessResponse<NotaryDetailResponse>> getNotaryDetail(@PathVariable UUID notary_id) {
         return ResponseEntity.ok(ApiSuccessResponse.ok(notaryOverviewService.getNotaryDetail(notary_id)));
+    }
+
+    @PatchMapping("/{notary_id}/deactivate")
+    public ResponseEntity<ApiSuccessResponse<NotaryStatusResponse>> deactivateNotary(@PathVariable UUID notary_id){
+        return ResponseEntity.ok(ApiSuccessResponse.ok(notaryOverviewService.deactivateNotary(notary_id)));
     }
 }

@@ -11,7 +11,9 @@ import com.mockproject.notary_admin_server.repository.NotaryOverviewRepository;
 import com.mockproject.notary_admin_server.service.NotaryOverviewService;
 import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.notary.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * NotaryOverviewServiceImpl
@@ -25,10 +27,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class NotaryOverviewServiceImpl implements NotaryOverviewService {
-    private final NotaryOverviewRepository repo;
+    private final NotaryOverviewRepository notaryOverviewRepository;
 
-    public NotaryOverviewServiceImpl(NotaryOverviewRepository repo) {
-        this.repo = repo;
+    public NotaryOverviewServiceImpl(NotaryOverviewRepository notaryOverviewRepository) {
+        this.notaryOverviewRepository = notaryOverviewRepository;
     }
 
     /**
@@ -38,8 +40,9 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
      */
     @Override
     public NotaryStatusResponse deactivateNotary(UUID notaryId) {
-        Optional<Notary> notaryIds = repo.findById(notaryId);
-        Notary notary = notaryIds.get();
+        Notary notary = notaryOverviewRepository.findById(notaryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary not found"));
+
         UserStatus currentStatus = notary.getStatus();
 
         switch (currentStatus){
@@ -49,7 +52,7 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         }
 
         notary.setUpdatedAt(LocalDateTime.now());
-        repo.save(notary);
+        notaryOverviewRepository.save(notary);
         return mapNotaryStatus(notary);
     }
 
@@ -60,7 +63,13 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
      */
     @Override
     public NotaryDetailResponse getNotaryDetail(UUID notaryId) {
-        return repo.getNatoryDetails(notaryId);
+        NotaryDetailResponse response = notaryOverviewRepository.getNatoryDetails(notaryId);
+
+        if (response == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary not found");
+        }
+
+        return response;
     }
 
     /**
@@ -70,7 +79,11 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
      */
     @Override
     public NotaryOverviewResponse getNotaryOverview(UUID notaryId) {
-        List<Object[]> rows = repo.getNatoryOverview(notaryId);
+        List<Object[]> rows = notaryOverviewRepository.getNatoryOverview(notaryId);
+
+        if (rows == null || rows.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary not found");
+        }
 
         NotaryCommission commission = null;
         NotaryBonds bond = null;
@@ -79,8 +92,10 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         Notary notary = null;
         Set<String> serviceAreas = new HashSet<>();
 
-        // loop through joined result (can be duplicated due to multiple joins)
+        // Loop through each row (each row = Object[] from JOIN query)
         for (Object[] row : rows){
+
+            // Extract entities from Object[]
             Notary n = (Notary) row[0];
             NotaryCommission c = (NotaryCommission) row[1];
             NotaryBonds b = (NotaryBonds) row[2];
@@ -101,6 +116,7 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
             }
         }
 
+        // Map entities to response DTO and return result
         return new NotaryOverviewResponse(
                 mapCommission(commission),
                 mapBond(bond),
@@ -119,7 +135,9 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         if (c == null) return null;
         NotaryOverviewResponse.Commission dto = new NotaryOverviewResponse.Commission();
         dto.setStatus(c.getStatus().name());
-        dto.setExpires(c.getExpirationDate().toString());
+        dto.setExpirationDate(c.getExpirationDate());
+        dto.setExpectedRenewalDate(c.getExpectedRenewalDate());
+        dto.setIsRenewalApplied(c.getIsRenewalApplied());
         return dto;
     }
 
@@ -133,7 +151,7 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         NotaryOverviewResponse.Bond dto = new NotaryOverviewResponse.Bond();
         boolean expired = b.getExpirationDate().isBefore(LocalDate.now());
         dto.setStatus(expired ? "Expired" : "Valid");
-        dto.setCoverage(b.getBondAmount());
+        dto.setBond_amount(b.getBondAmount());
         return dto;
     }
 
@@ -147,7 +165,8 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         NotaryOverviewResponse.EoInsurance dto = new NotaryOverviewResponse.EoInsurance();
         boolean expired = i.getExpirationDate().isBefore(LocalDate.now());
         dto.setStatus(expired ? "Expired" : "Valid");
-        dto.setExpires(i.getExpirationDate().toString());
+        dto.setExpirationDate(i.getExpirationDate());
+        dto.setEffectiveDate(i.getEffectiveDate());
         return dto;
     }
 
