@@ -19,6 +19,7 @@ import java.util.UUID;
  * -----------------------------------------------
  * 25-03-2026      DangQuoc    create
  * 26-03-2026      VanTu       edit
+ * 27-03-2026      ThoHa       edit
  */
 @Getter
 @Setter

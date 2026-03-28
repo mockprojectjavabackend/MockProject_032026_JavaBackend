@@ -1,17 +1,18 @@
 package com.mockproject.notary_admin_server.service.impl;
 
 import com.mockproject.notary_admin_server.dto.request.Capability.CapabilityRequest;
-import com.mockproject.notary_admin_server.dto.response.AvailabilityDTO;
-import com.mockproject.notary_admin_server.dto.response.CapabilityResponse;
-import com.mockproject.notary_admin_server.dto.response.HolidayDTO;
-import com.mockproject.notary_admin_server.dto.response.ServiceCapabilityResponse;
+import com.mockproject.notary_admin_server.dto.response.capability.AvailabilityDTO;
+import com.mockproject.notary_admin_server.dto.response.capability.CapabilityResponse;
+import com.mockproject.notary_admin_server.dto.response.capability.HolidayDTO;
+import com.mockproject.notary_admin_server.dto.response.capability.ServiceCapabilityResponse;
+import com.mockproject.notary_admin_server.exception.AppException;
+import com.mockproject.notary_admin_server.exception.errorCode.BaseErrorCode;
 import com.mockproject.notary_admin_server.mapper.NotaryAvailabilityMapper;
 import com.mockproject.notary_admin_server.mapper.NotaryCapabilityMapper;
 import com.mockproject.notary_admin_server.repository.*;
 import com.mockproject.notary_admin_server.service.ICapabilityService;
 import com.mockproject.notary_admin_server.service.IFederalHolidayService;
 import com.mockproject.notary_common.constant.FixedDayOffEnum;
-import com.mockproject.notary_common.entity.FederalHoliday;
 import com.mockproject.notary_common.entity.Language;
 import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryAvailability;
@@ -27,9 +28,21 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * CapabilityService
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      ThoHa       create
+ */
+
 @Service
 @RequiredArgsConstructor
 public class CapabilityService implements ICapabilityService {
+
     private final LanguageRepository languageRepository;
     private final NotaryCapabilityRepository notaryCapabilityRepository;
     private final NotaryServiceAreaRepository notaryServiceAreaRepository;
@@ -41,24 +54,10 @@ public class CapabilityService implements ICapabilityService {
 
     @Override
     public CapabilityResponse getCapability(UUID notaryId) {
-        NotaryServiceArea notaryServiceArea = notaryServiceAreaRepository.findByNotary_Id(notaryId);
-        NotaryAvailability notaryAvailability = notaryAvailabilityRepository.findByNotary_Id(notaryId);
-        Set<FederalHoliday> federalHolidays = federalHolidayService.getFederalHolidays();
 
-        Set<HolidayDTO> appliedHolidays = federalHolidays.stream().map(day -> HolidayDTO.builder()
-                .date(day.getHolidayDate())
-                .name(day.getHolidayName())
-                .type("FEDERAL")
-                .build()).collect(Collectors.toSet());
-
-        appliedHolidays.addAll(notaryServiceArea.getState().getStateHolidays()
-                .stream()
-                .map(day -> HolidayDTO.builder()
-                        .date(day.getHolidayDate())
-                        .name(day.getHolidayName())
-                        .type("STATE")
-                        .build()).collect(Collectors.toSet()));
-
+        NotaryServiceArea notaryServiceArea = getNotaryServiceAreaByNotaryOrThrow(notaryId);
+        NotaryAvailability notaryAvailability = getAvailabilityByNotaryOrThrow(notaryId);
+        Set<HolidayDTO> appliedHolidays = buildAppliedHoliday(notaryServiceArea);
 
         CapabilityResponse response = CapabilityResponse.builder()
                 .id(notaryAvailability.getId())
@@ -77,91 +76,142 @@ public class CapabilityService implements ICapabilityService {
     @Transactional
     @Override
     public ServiceCapabilityResponse createCapability(UUID notaryId, CapabilityRequest createCapabilityRequest) {
+
         Notary notary = saveLanguages(createCapabilityRequest,notaryId);
-        NotaryCapability notaryCapability = notaryCapabilityRepository.findByNotary_Id(notaryId);
-        if (notaryCapability != null) {
-            throw new RuntimeException("Notary Capability already exists");
+
+        if (notaryCapabilityRepository.findByNotary_Id(notaryId) != null) {
+            throw new AppException(BaseErrorCode.NOTARY_CAPABILITY_EXISTED);
         }
 
-        notaryCapability = saveCapability(createCapabilityRequest, notary);
-
-        NotaryAvailability notaryAvailability = notaryAvailabilityRepository.findByNotary_Id(notaryId);
-        if (notaryAvailability != null) {
-            throw new RuntimeException("Notary Avaibility already exists");
+        if (notaryAvailabilityRepository.findByNotary_Id(notaryId) != null) {
+            throw new AppException(BaseErrorCode.NOTARY_AVAILABILITY_EXISTED);
         }
-        notaryAvailability = saveAvailability(createCapabilityRequest, notary);
 
-        AvailabilityDTO availabilityDTO = notaryAvailabilityMapper.toAvailabilityDTO(notaryAvailability);
-        availabilityDTO.setWorking_days(getWorkingDays(notaryAvailability.getWorkingDaysPerWeek(), notaryAvailability.getFixedDayOff()));
+        NotaryCapability notaryCapability = saveCapability(createCapabilityRequest, notary);
+        NotaryAvailability notaryAvailability = saveAvailability(createCapabilityRequest, notary);
+        NotaryServiceArea notaryServiceArea = getServiceAreaByCountyNameOrThrow(createCapabilityRequest.getServiceArea());
 
-        NotaryServiceArea notaryServiceArea = notaryServiceAreaRepository.findByCountyName(createCapabilityRequest.getServiceArea());
         notaryServiceArea.setNotary(notary);
 
-        ServiceCapabilityResponse response =  ServiceCapabilityResponse.builder()
-                .service_capabilities(notaryCapabilityMapper.toServiceCapabilitiesDTO(notaryCapability))
-                .availability(availabilityDTO)
-                .max_travel_distance(Math.round(notaryCapability.getMaxDistance()))
-                .languages(notary.getLanguages().stream().map(Language::getLangName).collect(Collectors.toSet()))
-                .service_area(notaryServiceArea.getCountyName())
-                .build();
-
-        return response;
+        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea);
     }
 
     @Transactional
     @Override
-    public ServiceCapabilityResponse updateCapability(UUID notaryId, CapabilityRequest capabilityRequest) {
-        Notary notary = saveLanguages(capabilityRequest,notaryId);
-        NotaryCapability notaryCapability = notaryCapabilityRepository.findByNotary_Id(notaryId);
-        if (notaryCapability == null) {
-            throw new RuntimeException("Notary Capability doesn't exist");
-        }
+    public ServiceCapabilityResponse updateCapability(UUID notaryId, CapabilityRequest request) {
 
-        notaryCapability.setRon(capabilityRequest.getServiceCapabilities().isRon());
-        notaryCapability.setMobile(capabilityRequest.getServiceCapabilities().isMobileNotary());
-        notaryCapability.setLoanSigning(capabilityRequest.getServiceCapabilities().isLoanSigning());
-        notaryCapability.setApostilleRelatedSupport(capabilityRequest.getServiceCapabilities().isApostilleSupport());
-        notaryCapability.setMaxDistance((float)capabilityRequest.getMaxTravelDistance());
+        Notary notary = saveLanguages(request,notaryId);
 
-        NotaryAvailability notaryAvailability = notaryAvailabilityRepository.findByNotary_Id(notaryId);
-        if (notaryAvailability == null) {
-            throw new RuntimeException("Notary Avaibility doesn't exist");
-        }
-        notaryAvailability.setWorkingDaysPerWeek(capabilityRequest.getAvailability().getWorkingDays().size());
-        notaryAvailability.setStartTime(capabilityRequest.getAvailability().getStartTime());
-        notaryAvailability.setEndTime(capabilityRequest.getAvailability().getEndTime());
-        notaryAvailability.setFixedDayOff(capabilityRequest.getAvailability().getFixedDayOff()
-                        .stream()
-                        .map(day -> FixedDayOffEnum.valueOf(day.getDayOfWeek().name()))
-                        .findFirst()
-                        .orElse(null)
-                );
+        NotaryCapability notaryCapability = getCapabilityByNotaryOrThrow(notaryId);
+        NotaryAvailability notaryAvailability = getAvailabilityByNotaryOrThrow(notaryId);
+        NotaryServiceArea notaryServiceArea = getServiceAreaByCountyNameOrThrow(request.getServiceArea());
 
-        NotaryServiceArea notaryServiceArea = notaryServiceAreaRepository.findByCountyName(capabilityRequest.getServiceArea());
-        if (notaryServiceArea == null) {
-            throw new RuntimeException("Notary Service Area doesn't exist");
-        }
+        updateNotaryCapability(notaryCapability, request);
+        updateNotaryAvailability(notaryAvailability, request);
+
         notaryServiceArea.setNotary(notary);
 
+        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea);
+    }
+
+
+    private ServiceCapabilityResponse buildResponse(Notary notary,
+                                                    NotaryCapability notaryCapability,
+                                                    NotaryAvailability notaryAvailability,
+                                                    NotaryServiceArea notaryServiceArea
+                                                    ){
         AvailabilityDTO availabilityDTO = notaryAvailabilityMapper.toAvailabilityDTO(notaryAvailability);
+
         availabilityDTO.setWorking_days(
                 getWorkingDays(notaryAvailability.getWorkingDaysPerWeek(),
-                            notaryAvailability.getFixedDayOff()
+                        notaryAvailability.getFixedDayOff()
                 )
         );
 
         ServiceCapabilityResponse response =  ServiceCapabilityResponse.builder()
-                .service_capabilities(notaryCapabilityMapper.toServiceCapabilitiesDTO(notaryCapability))
+                .serviceCapabilities(notaryCapabilityMapper.toServiceCapabilitiesDTO(notaryCapability))
                 .availability(availabilityDTO)
-                .max_travel_distance(Math.round(notaryCapability.getMaxDistance()))
-                .languages(notary.getLanguages().stream().map(Language::getLangName).collect(Collectors.toSet()))
-                .service_area(notaryServiceArea.getCountyName())
+                .maxTravelDistance(Math.round(notaryCapability.getMaxDistance()))
+                .languages(notary.getLanguages()
+                        .stream()
+                        .map(Language::getLangName)
+                        .collect(Collectors.toSet()))
+                .serviceArea(notaryServiceArea.getCountyName())
                 .build();
 
         return response;
     }
 
-    public NotaryCapability saveCapability(CapabilityRequest createCapabilityRequest, Notary notary) {
+    private Set<HolidayDTO> buildAppliedHoliday(NotaryServiceArea notaryServiceArea){
+
+        Set<HolidayDTO> holidays = federalHolidayService.getFederalHolidays()
+                .stream()
+                .map(day -> HolidayDTO.builder()
+                            .date(day.getHolidayDate())
+                            .name(day.getHolidayName())
+                            .type("FEDERAL")
+                            .build()
+                ).collect(Collectors.toSet());
+
+        holidays.addAll(notaryServiceArea.getState().getStateHolidays()
+                .stream()
+                .map(day -> HolidayDTO.builder()
+                        .date(day.getHolidayDate())
+                        .name(day.getHolidayName())
+                        .type("STATE")
+                        .build()).collect(Collectors.toSet()));
+
+        return holidays;
+    }
+
+    private NotaryCapability getCapabilityByNotaryOrThrow(UUID notaryId) {
+        NotaryCapability notaryCapability = notaryCapabilityRepository.findByNotary_Id(notaryId);
+        if (notaryCapability == null) {
+            throw new AppException(
+                    BaseErrorCode.NOTARY_CAPABILITY_NOT_FOUND,
+                    Map.of("notaryId", notaryId)
+            );
+        }
+
+        return notaryCapability;
+    }
+
+    private NotaryAvailability getAvailabilityByNotaryOrThrow(UUID notaryId) {
+        NotaryAvailability notaryAvailability = notaryAvailabilityRepository.findByNotary_Id(notaryId);
+        if (notaryAvailability == null) {
+            throw new AppException(
+                    BaseErrorCode.NOTARY_AVAILABILITY_NOT_FOUND,
+                    Map.of("notaryId", notaryId)
+            );
+        }
+
+        return notaryAvailability;
+    }
+
+    private NotaryServiceArea getNotaryServiceAreaByNotaryOrThrow(UUID notaryId) {
+        NotaryServiceArea notaryServiceArea = notaryServiceAreaRepository.findByNotary_Id(notaryId);
+        if (notaryServiceArea == null) {
+            throw new AppException(
+                    BaseErrorCode.NOTARY_SERVICE_AREA_NOT_FOUND,
+                    Map.of("notaryId", notaryId)
+            );
+        }
+
+        return notaryServiceArea;
+    }
+
+    private NotaryServiceArea getServiceAreaByCountyNameOrThrow(String county) {
+        NotaryServiceArea notaryServiceArea = notaryServiceAreaRepository.findByCountyName(county);
+        if (notaryServiceArea == null) {
+            throw new AppException(
+                    BaseErrorCode.NOTARY_SERVICE_AREA_COUNTY_NOT_FOUND
+            );
+        }
+
+        return notaryServiceArea;
+    }
+
+    private NotaryCapability saveCapability(CapabilityRequest createCapabilityRequest, Notary notary) {
         NotaryCapability notaryCapability = NotaryCapability.builder()
                 .ron(createCapabilityRequest.getServiceCapabilities().isRon())
                 .mobile(createCapabilityRequest.getServiceCapabilities().isMobileNotary())
@@ -174,7 +224,7 @@ public class CapabilityService implements ICapabilityService {
         return notaryCapabilityRepository.save(notaryCapability);
     }
 
-    public NotaryAvailability saveAvailability(CapabilityRequest createCapabilityRequest, Notary notary) {
+    private NotaryAvailability saveAvailability(CapabilityRequest createCapabilityRequest, Notary notary) {
         NotaryAvailability notaryAvailability;
         if(createCapabilityRequest.getAvailability() != null){
             notaryAvailability = NotaryAvailability.builder()
@@ -202,7 +252,7 @@ public class CapabilityService implements ICapabilityService {
         return notaryAvailabilityRepository.save(notaryAvailability);
     }
 
-    public Notary saveLanguages(CapabilityRequest createCapabilityRequest, UUID notaryId) {
+    private Notary saveLanguages(CapabilityRequest createCapabilityRequest, UUID notaryId) {
         if(createCapabilityRequest.getLanguages().isEmpty()){
             throw new RuntimeException("Language list is empty");
         }
@@ -216,10 +266,33 @@ public class CapabilityService implements ICapabilityService {
 
     }
 
-    public List<DayOfWeek>  getWorkingDays(int workingDaysPerWeek, FixedDayOffEnum offDay){
+    private void updateNotaryAvailability(NotaryAvailability notaryAvailability, CapabilityRequest capabilityRequest) {
+        if(capabilityRequest.getAvailability() != null){
+            notaryAvailability.setWorkingDaysPerWeek(capabilityRequest.getAvailability().getWorkingDays().size());
+            notaryAvailability.setStartTime(capabilityRequest.getAvailability().getStartTime());
+            notaryAvailability.setEndTime(capabilityRequest.getAvailability().getEndTime());
+            notaryAvailability.setFixedDayOff(capabilityRequest.getAvailability().getFixedDayOff()
+                    .stream()
+                    .map(day -> FixedDayOffEnum.valueOf(day.getDayOfWeek().name()))
+                    .findFirst()
+                    .orElse(null)
+            );
+        }
+    }
+
+    private void updateNotaryCapability(NotaryCapability notaryCapability, CapabilityRequest capabilityRequest) {
+        notaryCapability.setRon(capabilityRequest.getServiceCapabilities().isRon());
+        notaryCapability.setMobile(capabilityRequest.getServiceCapabilities().isMobileNotary());
+        notaryCapability.setLoanSigning(capabilityRequest.getServiceCapabilities().isLoanSigning());
+        notaryCapability.setApostilleRelatedSupport(capabilityRequest.getServiceCapabilities().isApostilleSupport());
+        notaryCapability.setMaxDistance((float)capabilityRequest.getMaxTravelDistance());
+    }
+
+    private List<DayOfWeek>  getWorkingDays(int workingDaysPerWeek, FixedDayOffEnum offDay){
         return Arrays.stream(DayOfWeek.values())
                 .filter(day -> offDay == null || !day.name().equals(offDay.name()))
                 .limit(workingDaysPerWeek)
                 .toList();
     }
+
 }

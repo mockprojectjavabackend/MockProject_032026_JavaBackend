@@ -3,10 +3,7 @@ package com.mockproject.notary_admin_server.dto.request.Capability;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mockproject.notary_admin_server.validation.UniqueLanguageElements;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.hibernate.validator.constraints.UniqueElements;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -17,6 +14,17 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
+
+/**
+ * CapabilityRequest
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      ThoHa       create
+ */
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -62,6 +70,6 @@ public class CapabilityRequest {
         private LocalTime endTime;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        private Set<LocalDate> fixedDayOff;
+        private Set<@Future(message = "Date must be in the future")LocalDate> fixedDayOff;
     }
 }

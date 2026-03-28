@@ -1,7 +1,6 @@
 package com.mockproject.notary_admin_server.exception;
 
 import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
-import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,15 +8,11 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.mockproject.notary_admin_server.dto.ApiResponse;
-import jakarta.validation.ConstraintDefinitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
@@ -54,12 +49,15 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    // Validation Exception Handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidationException(MethodArgumentNotValidException ex,
                                                                       HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
+            String field = error.getField();
+            field = field.replaceAll("\\[.*?\\]","");
+            errors.put(field, error.getDefaultMessage());
         });
 
         ApiErrorResponse response = ApiErrorResponse.builder()

@@ -1,4 +1,4 @@
-package com.mockproject.notary_admin_server.dto.response;
+package com.mockproject.notary_admin_server.dto.response.capability;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,6 +8,17 @@ import lombok.*;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+
+/**
+ * AvailabilityDTO
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      ThoHa       create
+ */
 
 @NoArgsConstructor
 @AllArgsConstructor

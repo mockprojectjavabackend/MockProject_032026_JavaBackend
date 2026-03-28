@@ -8,6 +8,17 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * FederalHoliday
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      ThoHa    create
+ */
+
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,10 +1,20 @@
-package com.mockproject.notary_admin_server.dto.response;
+package com.mockproject.notary_admin_server.dto.response.capability;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import lombok.*;
 
 import java.util.UUID;
+
+/**
+ * ServiceCapabilitiesDTO
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      ThoHa       create
+ */
 
 @NoArgsConstructor
 @AllArgsConstructor

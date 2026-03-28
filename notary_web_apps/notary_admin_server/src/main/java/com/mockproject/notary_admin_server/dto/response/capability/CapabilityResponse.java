@@ -1,4 +1,4 @@
-package com.mockproject.notary_admin_server.dto.response;
+package com.mockproject.notary_admin_server.dto.response.capability;
 
 
 import com.mockproject.notary_common.constant.FixedDayOffEnum;
@@ -10,6 +10,17 @@ import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+/**
+ * CapabilityResponse
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      ThoHa       create
+ */
 
 @Getter
 @Setter
