@@ -1,9 +1,19 @@
 package com.mockproject.notary_admin_server.exception;
 
 import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
+import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.mockproject.notary_admin_server.dto.ApiResponse;
+import jakarta.validation.ConstraintDefinitionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,6 +23,7 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    // Core - Custom Application Exception Handler
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiErrorResponse> handleAppException(
             AppException ex,
@@ -42,6 +53,27 @@ public class GlobalExceptionHandler {
                         errors
                 ));
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidationException(MethodArgumentNotValidException ex,
+                                                                      HttpServletRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            errors.put(error.getField(), error.getDefaultMessage());
+        });
+
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .path(request.getRequestURI())
+                .errors(errors)
+                .timestamp(Instant.now().toString())
+                .build()
+                ;
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /* ================= UTIL ================= */
 
     private ResponseEntity<ApiErrorResponse> build(
             ErrorCode errorCode,

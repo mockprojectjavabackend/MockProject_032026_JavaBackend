@@ -1,12 +1,14 @@
 package com.mockproject.notary_admin_server.dto.request.Capability;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.mockproject.notary_admin_server.validation.UniqueLanguageElements;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.validator.constraints.UniqueElements;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
@@ -18,7 +20,7 @@ import java.util.Set;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CreateCapabilityRequest {
+public class CapabilityRequest {
     @NotNull(message = "Service capabilities can't be null")
     @Valid
     private ServiceCapabilities serviceCapabilities;
@@ -30,7 +32,8 @@ public class CreateCapabilityRequest {
     private int maxTravelDistance;
 
     @NotEmpty(message = "Languages is not empty")
-    private Set<String> languages;
+    @UniqueLanguageElements
+    private List<String> languages;
 
     @Valid
     private Availability availability;

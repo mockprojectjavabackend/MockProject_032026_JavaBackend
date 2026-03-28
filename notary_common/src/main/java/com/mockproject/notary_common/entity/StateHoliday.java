@@ -39,7 +39,7 @@ public class StateHoliday {
     @Column(name = "holiday_date", nullable = false)
     private LocalDate holidayDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "state_id", nullable = false)
     private State state;
 }
