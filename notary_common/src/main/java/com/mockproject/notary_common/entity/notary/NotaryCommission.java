@@ -1,6 +1,8 @@
 package com.mockproject.notary_common.entity.notary;
 
 import com.mockproject.notary_common.constant.CommissionStatus;
+import com.mockproject.notary_common.entity.State;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,12 +18,12 @@ import java.util.*;
  * NotaryCommission
  *
  * @version 1.0
-
- * Modification Logs:
- * DATE            AUTHOR      DESCRIPTION
- * -----------------------------------------------
- * 25-03-2026      VanHai      create
- * 26-03-2026      VanTu       edit
+ * 
+ *          Modification Logs:
+ *          DATE AUTHOR DESCRIPTION
+ *          -----------------------------------------------
+ *          25-03-2026 VanHai create
+ *          26-03-2026 VanTu edit
  */
 @Getter
 @Setter
@@ -37,8 +39,9 @@ public class NotaryCommission {
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(name = "commission_state", nullable = false, length = 2)
-    private String commissionState;
+    @ManyToOne
+    @JoinColumn(name = "commission_state_id")
+    private State state;
 
     @Column(name = "commission_number", nullable = false, length = 64)
     private String commissionNumber;
@@ -56,7 +59,7 @@ public class NotaryCommission {
 
     @Builder.Default
     @Column(name = "is_renewal_applied")
-    private boolean isRenewalApplied = false;
+    private Boolean isRenewalApplied = false;
 
     @Column(name = "expected_renewal_date")
     private LocalDate expectedRenewalDate;
