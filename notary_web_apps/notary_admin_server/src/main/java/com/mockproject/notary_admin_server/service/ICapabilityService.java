@@ -18,7 +18,7 @@ import java.util.UUID;
  */
 
 public interface ICapabilityService {
-    CapabilityResponse getCapability(UUID notaryId);
+    ServiceCapabilityResponse getCapability(UUID notaryId);
     ServiceCapabilityResponse createCapability(UUID notaryId, CapabilityRequest createCapabilityRequest);
     ServiceCapabilityResponse updateCapability(UUID notaryId, CapabilityRequest updateCapabilityRequest);
 }

@@ -29,7 +29,7 @@ public class CapabilityController {
     private final ICapabilityService capabilityService;
 
     @GetMapping("/{notaryId}/service_capability")
-    public ApiSuccessResponse<CapabilityResponse> getCapability(@PathVariable UUID notaryId) {
+    public ApiSuccessResponse<ServiceCapabilityResponse> getCapability(@PathVariable UUID notaryId) {
         return ApiSuccessResponse.ok(capabilityService.getCapability(notaryId));
     }
 

@@ -53,24 +53,16 @@ public class CapabilityService implements ICapabilityService {
     private final NotaryAvailabilityMapper notaryAvailabilityMapper;
 
     @Override
-    public CapabilityResponse getCapability(UUID notaryId) {
+    public ServiceCapabilityResponse getCapability(UUID notaryId) {
 
+        Notary notary = notariesRepository.findById(notaryId).orElseThrow(()-> new RuntimeException("Lỗi notary"));
+        NotaryCapability notaryCapability = getCapabilityByNotaryOrThrow(notaryId);
         NotaryServiceArea notaryServiceArea = getNotaryServiceAreaByNotaryOrThrow(notaryId);
         NotaryAvailability notaryAvailability = getAvailabilityByNotaryOrThrow(notaryId);
         Set<HolidayDTO> appliedHolidays = buildAppliedHoliday(notaryServiceArea);
 
-        CapabilityResponse response = CapabilityResponse.builder()
-                .id(notaryAvailability.getId())
-                .notaryId(notaryAvailability.getNotary().getId())
-                .timezone(notaryAvailability.getTimezone())
-                .workingDaysPerWeek(notaryAvailability.getWorkingDaysPerWeek())
-                .startTime(notaryAvailability.getStartTime())
-                .endTime(notaryAvailability.getEndTime())
-                .fixedDayOff(notaryAvailability.getFixedDayOff())
-                .appliedHolidays(appliedHolidays)
-                .build();
+        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea, appliedHolidays);
 
-        return response;
     }
 
     @Transactional
@@ -93,7 +85,7 @@ public class CapabilityService implements ICapabilityService {
 
         notaryServiceArea.setNotary(notary);
 
-        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea);
+        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea, null);
     }
 
     @Transactional
@@ -104,21 +96,23 @@ public class CapabilityService implements ICapabilityService {
 
         NotaryCapability notaryCapability = getCapabilityByNotaryOrThrow(notaryId);
         NotaryAvailability notaryAvailability = getAvailabilityByNotaryOrThrow(notaryId);
-        NotaryServiceArea notaryServiceArea = getServiceAreaByCountyNameOrThrow(request.getServiceArea());
+        NotaryServiceArea notaryServiceArea = getNotaryServiceAreaByNotaryOrThrow(notaryId);
 
         updateNotaryCapability(notaryCapability, request);
         updateNotaryAvailability(notaryAvailability, request);
 
+        notaryServiceArea.setCountyName(request.getServiceArea());
         notaryServiceArea.setNotary(notary);
 
-        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea);
+        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea, null);
     }
 
 
     private ServiceCapabilityResponse buildResponse(Notary notary,
                                                     NotaryCapability notaryCapability,
                                                     NotaryAvailability notaryAvailability,
-                                                    NotaryServiceArea notaryServiceArea
+                                                    NotaryServiceArea notaryServiceArea,
+                                                    Set<HolidayDTO> appliedHolidays
                                                     ){
         AvailabilityDTO availabilityDTO = notaryAvailabilityMapper.toAvailabilityDTO(notaryAvailability);
 
@@ -137,6 +131,7 @@ public class CapabilityService implements ICapabilityService {
                         .map(Language::getLangName)
                         .collect(Collectors.toSet()))
                 .serviceArea(notaryServiceArea.getCountyName())
+                .appliedHolidays(appliedHolidays)
                 .build();
 
         return response;
@@ -232,11 +227,7 @@ public class CapabilityService implements ICapabilityService {
                     .startTime(createCapabilityRequest.getAvailability().getStartTime())
                     .endTime(createCapabilityRequest.getAvailability().getEndTime())
                     .workingDaysPerWeek(createCapabilityRequest.getAvailability().getWorkingDays().size())
-                    .fixedDayOff(createCapabilityRequest.getAvailability().getFixedDayOff()
-                            .stream()
-                            .map(day -> FixedDayOffEnum.valueOf(day.getDayOfWeek().name()))
-                            .findFirst()
-                            .orElse(null))
+                    .fixedDayOff(createCapabilityRequest.getAvailability().getFixedDayOff())
                     .notary(notary)
                     .build();
         }else {
@@ -271,12 +262,7 @@ public class CapabilityService implements ICapabilityService {
             notaryAvailability.setWorkingDaysPerWeek(capabilityRequest.getAvailability().getWorkingDays().size());
             notaryAvailability.setStartTime(capabilityRequest.getAvailability().getStartTime());
             notaryAvailability.setEndTime(capabilityRequest.getAvailability().getEndTime());
-            notaryAvailability.setFixedDayOff(capabilityRequest.getAvailability().getFixedDayOff()
-                    .stream()
-                    .map(day -> FixedDayOffEnum.valueOf(day.getDayOfWeek().name()))
-                    .findFirst()
-                    .orElse(null)
-            );
+            notaryAvailability.setFixedDayOff(capabilityRequest.getAvailability().getFixedDayOff());
         }
     }
 

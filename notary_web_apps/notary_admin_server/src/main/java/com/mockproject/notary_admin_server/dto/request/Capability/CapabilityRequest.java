@@ -2,6 +2,7 @@ package com.mockproject.notary_admin_server.dto.request.Capability;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mockproject.notary_admin_server.validation.UniqueLanguageElements;
+import com.mockproject.notary_common.constant.FixedDayOffEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -69,7 +70,6 @@ public class CapabilityRequest {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
         private LocalTime endTime;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        private Set<@Future(message = "Date must be in the future")LocalDate> fixedDayOff;
+        private FixedDayOffEnum fixedDayOff;
     }
 }

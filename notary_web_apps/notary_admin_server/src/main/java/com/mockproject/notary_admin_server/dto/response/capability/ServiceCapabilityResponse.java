@@ -4,6 +4,7 @@ import lombok.*;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -29,5 +30,6 @@ public class ServiceCapabilityResponse {
     private int maxTravelDistance;
     private Set<String> languages;
     private AvailabilityDTO availability;
+    private Set<HolidayDTO> appliedHolidays = new HashSet<>();
 }
 
