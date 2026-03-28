@@ -8,6 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.mockproject.notary_admin_server.dto.PaginationResponse;
 import com.mockproject.notary_admin_server.dto.request.CommissionQuery;
+import com.mockproject.notary_admin_server.dto.request.CreateNotaryCommissionRequest;
+import com.mockproject.notary_admin_server.dto.request.UpdateNotaryCommissionRequest;
 import com.mockproject.notary_admin_server.dto.response.CommissionDetailResponse;
 import com.mockproject.notary_admin_server.dto.response.CommissionListResponse;
 import com.mockproject.notary_common.entity.notary.NotaryCommission;
@@ -16,4 +18,11 @@ public interface NotaryCommissionService {
     PaginationResponse<List<CommissionListResponse>> fetchAllNotaryCommissions(UUID notaryId, CommissionQuery query);
 
     CommissionDetailResponse getCommissionById(UUID notaryId, UUID commissionId);
+
+    CommissionDetailResponse createCommission(UUID notaryId, CreateNotaryCommissionRequest req);
+
+    CommissionDetailResponse updateCommission(UUID notaryId, UUID commissionId,
+            UpdateNotaryCommissionRequest req);
+
+    void deleteCommission(UUID notaryId, UUID commissionId);
 }

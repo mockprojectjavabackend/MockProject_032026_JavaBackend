@@ -21,6 +21,7 @@ public class CommissionDetailResponse {
     private String commissionNumber;
     private String commissionState;
 
+    private UUID notaryId;
     private LocalDate issueDate;
     private LocalDate expirationDate;
     private LocalDate expectedRenewalDate;
@@ -30,4 +31,6 @@ public class CommissionDetailResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private String fileUrl;
 }

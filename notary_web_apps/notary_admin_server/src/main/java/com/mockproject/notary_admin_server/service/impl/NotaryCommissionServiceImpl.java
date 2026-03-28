@@ -12,20 +12,48 @@ import org.springframework.stereotype.Service;
 
 import com.mockproject.notary_admin_server.dto.PaginationResponse;
 import com.mockproject.notary_admin_server.dto.request.CommissionQuery;
+import com.mockproject.notary_admin_server.dto.request.CreateNotaryCommissionRequest;
+import com.mockproject.notary_admin_server.dto.request.UpdateNotaryCommissionRequest;
 import com.mockproject.notary_admin_server.dto.response.CommissionDetailResponse;
 import com.mockproject.notary_admin_server.dto.response.CommissionListResponse;
 import com.mockproject.notary_admin_server.exception.ForbiddenException;
 import com.mockproject.notary_admin_server.exception.NotFoundException;
 import com.mockproject.notary_admin_server.repository.NotaryCommissionRepository;
+import com.mockproject.notary_admin_server.repository.NotaryRepository;
+import com.mockproject.notary_admin_server.repository.StateRepository;
 import com.mockproject.notary_admin_server.service.NotaryCommissionService;
+import com.mockproject.notary_common.constant.CommissionStatus;
+import com.mockproject.notary_common.entity.State;
+import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryCommission;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+/**
+ * NotaryCommissionServiceImpl
+ *
+ * @version 1.0
+ * @date 29-03-2026
+ *       <p>
+ *       Modification Logs:
+ *       DATE AUTHOR DESCRIPTION
+ *       -----------------------------------------------
+ *       29-03-2026 HuyenThuong handle logic crud notary commission
+ */
 
 @Service
 public class NotaryCommissionServiceImpl implements NotaryCommissionService {
     private final NotaryCommissionRepository notaryCommissionRepository;
+    private final NotaryRepository notaryRepository;
+    private final StateRepository stateRepository;
 
-    public NotaryCommissionServiceImpl(NotaryCommissionRepository notaryCommissionRepository) {
+    public NotaryCommissionServiceImpl(NotaryCommissionRepository notaryCommissionRepository,
+            NotaryRepository notaryRepository, StateRepository stateRepository) {
         this.notaryCommissionRepository = notaryCommissionRepository;
+        this.notaryRepository = notaryRepository;
+        this.stateRepository = stateRepository;
+
     }
 
     public PaginationResponse<List<CommissionListResponse>> fetchAllNotaryCommissions(UUID notaryId,
@@ -95,13 +123,80 @@ public class NotaryCommissionServiceImpl implements NotaryCommissionService {
         response.setId(commission.getId());
         response.setCommissionNumber(commission.getCommissionNumber());
         response.setCommissionState(commission.getState().getStateName());
+        response.setNotaryId(commission.getNotary().getId());
         response.setIssueDate(commission.getIssueDate());
         response.setExpirationDate(commission.getExpirationDate());
         response.setExpectedRenewalDate(commission.getExpectedRenewalDate());
         response.setStatus(commission.getStatus());
         response.setIsRenewalApplied(commission.getIsRenewalApplied());
+        response.setFileUrl(commission.getFileUrl());
         response.setCreatedAt(commission.getCreatedAt());
         response.setUpdatedAt(commission.getUpdatedAt());
         return response;
+    }
+
+    public CommissionDetailResponse createCommission(UUID notaryId, CreateNotaryCommissionRequest req) {
+
+        Notary notary = notaryRepository.findById(notaryId).orElseThrow(() -> NotFoundException.notary());
+
+        State state = stateRepository.findById(req.getCommissionStateId()).orElseThrow(() -> NotFoundException.state());
+        NotaryCommission commission = new NotaryCommission();
+        commission.setNotary(notary);
+        commission.setState(state);
+        commission.setCommissionNumber(req.getCommissionNumber());
+        commission.setIssueDate(req.getIssueDate());
+        commission.setExpirationDate(req.getExpirationDate());
+        commission.setExpectedRenewalDate(req.getExpectedRenewalDate());
+        commission.setFileUrl(req.getFileUrl());
+
+        notaryCommissionRepository.save(commission);
+
+        return convertToDetailResponse(commission);
+    }
+
+    public CommissionDetailResponse updateCommission(UUID notaryId, UUID commissionId,
+            UpdateNotaryCommissionRequest req) {
+
+        NotaryCommission commission = notaryCommissionRepository.findById(commissionId)
+                .orElseThrow(() -> NotFoundException.commission());
+
+        if (!commission.getNotary().getId().equals(notaryId)) {
+            throw ForbiddenException.accessDenied();
+        }
+
+        commission.setCommissionNumber(req.getCommissionNumber());
+        commission.setIssueDate(req.getIssueDate());
+        commission.setExpirationDate(req.getExpirationDate());
+        commission.setExpectedRenewalDate(req.getExpectedRenewalDate());
+
+        if (req.getCommissionStateId() != null) {
+            State state = stateRepository.findById(req.getCommissionStateId())
+                    .orElseThrow(() -> NotFoundException.state());
+
+            commission.setState(state);
+        }
+        commission.setStatus(req.getStatus());
+        commission.setIsRenewalApplied(req.getIsRenewalApplied());
+
+        if (req.getFileUrl() != null) {
+            commission.setFileUrl(req.getFileUrl());
+        }
+        notaryCommissionRepository.save(commission);
+
+        return convertToDetailResponse(commission);
+    }
+
+    public void deleteCommission(UUID notaryId, UUID commissionId) {
+
+        NotaryCommission commission = notaryCommissionRepository.findById(commissionId)
+                .orElseThrow(() -> NotFoundException.commission());
+
+        if (!commission.getNotary().getId().equals(notaryId)) {
+            throw ForbiddenException.accessDenied();
+        }
+
+        commission.setIsDeleted(true);
+
+        notaryCommissionRepository.save(commission);
     }
 }

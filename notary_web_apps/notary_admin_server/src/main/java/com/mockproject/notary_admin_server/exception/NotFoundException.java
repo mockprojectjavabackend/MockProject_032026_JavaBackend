@@ -31,4 +31,11 @@ public class NotFoundException extends AppException {
         return new NotFoundException(NotFoundErrorCode.COMMISSION_NOT_FOUND);
     }
 
+    public static NotFoundException notary() {
+        return new NotFoundException(NotFoundErrorCode.NOTARY_NOT_FOUND);
+    }
+
+    public static NotFoundException state() {
+        return new NotFoundException(NotFoundErrorCode.STATE_NOT_FOUND);
+    }
 }

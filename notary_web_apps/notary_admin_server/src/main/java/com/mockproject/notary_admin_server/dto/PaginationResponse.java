@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class PaginationResponse<T> {
     private Pagination pagination;
-    private T data;
+    private T meta;
 
     @Getter
     @Setter
@@ -33,7 +33,7 @@ public class PaginationResponse<T> {
         p.setTotal_pages(page.getTotalPages());
 
         response.setPagination(p);
-        response.setData(page.getContent());
+        response.setMeta(page.getContent());
 
         return response;
     }

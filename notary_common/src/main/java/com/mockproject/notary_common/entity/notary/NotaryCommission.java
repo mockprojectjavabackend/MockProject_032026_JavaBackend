@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
@@ -32,6 +33,7 @@ import java.util.*;
 @Builder
 @Entity
 @Table(name = "notary_commissions")
+@SQLRestriction("is_deleted = false")
 public class NotaryCommission {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -71,6 +73,16 @@ public class NotaryCommission {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String fileUrl;
+
+    @Builder.Default
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @ManyToOne
     @JoinColumn(name = "notary_id")
