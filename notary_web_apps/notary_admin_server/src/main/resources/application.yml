@@ -23,6 +23,17 @@ security:
 jwt:
   signerKey: ${JWT_SIGNER_KEY}
 
+app:
+  seed:
+    enabled: ${SEED_ENABLED:false}
+    admin:
+      password: ${SEED_ADMIN_PASSWORD:}
+      email: ${SEED_ADMIN_EMAIL:}
+      full-name: ${SEED_ADMIN_FULL_NAME:}
+      phone-number: ${SEED_ADMIN_PHONE_NUMBER:}
+      address: ${SEED_ADMIN_ADDRESS:}
+      dob: ${SEED_ADMIN_DOB:}
+
 server:
   port: ${SERVER_PORT:8080}
   servlet:

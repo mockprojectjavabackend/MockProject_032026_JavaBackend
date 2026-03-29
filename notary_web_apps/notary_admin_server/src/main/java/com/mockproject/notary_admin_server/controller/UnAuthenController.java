@@ -19,4 +19,6 @@ public class UnAuthenController {
         log.info("unauthenticated");
         return "You are not authenticated. Please log in to access this resource.";
     }
+
+
 }
