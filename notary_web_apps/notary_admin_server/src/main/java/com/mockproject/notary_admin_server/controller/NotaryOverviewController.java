@@ -2,13 +2,14 @@ package com.mockproject.notary_admin_server.controller;
 
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryOverviewResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryStatusResponse;
 import com.mockproject.notary_admin_server.service.NotaryOverviewService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * NotaryOverviewController
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 26-03-2026      DangQuoc      create
+ * 29-03-2026      DangQuoc      edit
  */
 @RestController
 @RequestMapping("/api/notaries")

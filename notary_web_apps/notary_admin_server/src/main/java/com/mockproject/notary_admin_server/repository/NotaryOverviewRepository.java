@@ -1,13 +1,16 @@
 package com.mockproject.notary_admin_server.repository;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse;
-import com.mockproject.notary_common.entity.notary.Notary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse;
+import com.mockproject.notary_admin_server.dto.response.NotaryOverviewDTO;
+import com.mockproject.notary_common.entity.notary.Notary;
 
 /**
  * NotaryOverviewRepository
@@ -18,41 +21,49 @@ import org.springframework.data.repository.query.Param;
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 26-03-2026      DangQuoc      create
+ * 28-03-2026      DangQuoc      deleted getNotaryOverview
+ * 28-03-2026      DangQuoc      create getOverview
  */
+@Repository
 public interface NotaryOverviewRepository extends JpaRepository<Notary, UUID> {
 
-    /**
-     * get overview information of a notary
-     *
-     * Purpose:
-     * - Retrieve full related data of a Notary including:
-     *   + commissions
-     *   + bonds
-     *   + insurances
-     *   + documents
-     *   + service areas
-     *   + capability
-     *
-     * @param notaryId the unique identifier of the notary
-     * @return List<Object[]> containing:
-     *         [0] Notary (n)
-     *         [1] Commission (c)
-     *         [2] Bond (b)
-     *         [3] Insurance (i)
-     *         [4] Document (d)
-     *         [5] NotaryServiceArea (sa)
-     */
     @Query("""
-    SELECT n, c, b, i, d, sa
+    SELECT new com.mockproject.notary_admin_server.dto.response.NotaryOverviewDTO(
+    
+        c.status,
+        c.expirationDate,
+        c.expectedRenewalDate,
+        c.isRenewalApplied,
+    
+        CASE 
+            WHEN b.expirationDate < CURRENT_DATE THEN 'Expired'
+            ELSE 'Valid'
+        END,
+        b.bondAmount,
+    
+        CASE 
+            WHEN i.expirationDate < CURRENT_DATE THEN 'Expired'
+            ELSE 'Valid'
+        END,
+        i.expirationDate,
+        i.effectiveDate,
+    
+        d.docCategory,
+        d.verifiedStatus,
+        d.uploadDate,
+    
+        n.email,
+        n.phone,
+        n.address
+    )
     FROM Notary n
     LEFT JOIN n.commissions c
     LEFT JOIN n.bonds b
     LEFT JOIN n.insurances i
     LEFT JOIN n.documents d
-    LEFT JOIN NotaryServiceArea sa ON sa.notary.id = n.id
-    WHERE n.id = :notaryId
+    WHERE n.id = :id
     """)
-    List<Object[]> getNatoryOverview(@Param("notaryId") UUID notaryId);
+    Optional<NotaryOverviewDTO> getOverview(UUID id);
 
     @Query("""
     SELECT new com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse(n.photoUrl,n.fullName,c.commissionNumber,n.email,n.phone,n.address,n.status)

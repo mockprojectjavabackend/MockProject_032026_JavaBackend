@@ -1,19 +1,21 @@
 package com.mockproject.notary_admin_server.service.impl;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import org.springframework.stereotype.Service;
+
 import com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse;
+import com.mockproject.notary_admin_server.dto.response.NotaryOverviewDTO;
 import com.mockproject.notary_admin_server.dto.response.NotaryOverviewResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryStatusResponse;
+import com.mockproject.notary_admin_server.exception.AppException;
+import com.mockproject.notary_admin_server.exception.errorCode.BaseErrorCode;
 import com.mockproject.notary_admin_server.repository.NotaryOverviewRepository;
+import com.mockproject.notary_admin_server.repository.NotaryServiceAreaRepository;
 import com.mockproject.notary_admin_server.service.NotaryOverviewService;
 import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.notary.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * NotaryOverviewServiceImpl
@@ -24,13 +26,17 @@ import org.springframework.web.server.ResponseStatusException;
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 26-03-2026      DangQuoc      create
+ * 28-03-2026      DangQuoc      edit getNotaryOverview
+ * 28-03-2026      DangQuoc      edit deactivateNotary
  */
 @Service
 public class NotaryOverviewServiceImpl implements NotaryOverviewService {
     private final NotaryOverviewRepository notaryOverviewRepository;
+    private final NotaryServiceAreaRepository notaryServiceAreaRepository;
 
-    public NotaryOverviewServiceImpl(NotaryOverviewRepository notaryOverviewRepository) {
+    public NotaryOverviewServiceImpl(NotaryOverviewRepository notaryOverviewRepository, NotaryServiceAreaRepository notaryServiceAreaRepository) {
         this.notaryOverviewRepository = notaryOverviewRepository;
+        this.notaryServiceAreaRepository = notaryServiceAreaRepository;
     }
 
     /**
@@ -41,11 +47,10 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
     @Override
     public NotaryStatusResponse deactivateNotary(UUID notaryId) {
         Notary notary = notaryOverviewRepository.findById(notaryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary not found"));
+                .orElseThrow(() -> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
 
         UserStatus currentStatus = notary.getStatus();
-
-        switch (currentStatus){
+        switch (currentStatus) {
             case ACTIVE -> notary.setStatus(UserStatus.INACTIVE);
             case INACTIVE -> notary.setStatus(UserStatus.BLOCKED);
             case BLOCKED -> notary.setStatus(UserStatus.ACTIVE);
@@ -53,7 +58,7 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
 
         notary.setUpdatedAt(LocalDateTime.now());
         notaryOverviewRepository.save(notary);
-        return mapNotaryStatus(notary);
+        return mapToNotaryStatusResponse(notary);
     }
 
     /**
@@ -66,7 +71,7 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         NotaryDetailResponse response = notaryOverviewRepository.getNatoryDetails(notaryId);
 
         if (response == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary not found");
+            throw new AppException(BaseErrorCode.NOTARY_NOT_FOUND);
         }
 
         return response;
@@ -79,136 +84,106 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
      */
     @Override
     public NotaryOverviewResponse getNotaryOverview(UUID notaryId) {
-        List<Object[]> rows = notaryOverviewRepository.getNatoryOverview(notaryId);
 
-        if (rows == null || rows.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary not found");
-        }
+        NotaryOverviewDTO nod = notaryOverviewRepository.getOverview(notaryId)
+                .orElseThrow(() -> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
 
-        NotaryCommission commission = null;
-        NotaryBonds bond = null;
-        NotaryInsurance insurance = null;
-        NotaryDocument document= null;
-        Notary notary = null;
-        Set<String> serviceAreas = new HashSet<>();
+        List<String> areas = notaryServiceAreaRepository.getServiceAreas(notaryId);
 
-        // Loop through each row (each row = Object[] from JOIN query)
-        for (Object[] row : rows){
+        return mapToNotaryOverviewResponse(nod, areas);
+    }
 
-            // Extract entities from Object[]
-            Notary n = (Notary) row[0];
-            NotaryCommission c = (NotaryCommission) row[1];
-            NotaryBonds b = (NotaryBonds) row[2];
-            NotaryInsurance i = (NotaryInsurance) row[3];
-            NotaryDocument d = (NotaryDocument) row[4];
-            NotaryServiceArea sa = (NotaryServiceArea) row[5];
-
-            // take first non-null value for each object
-            if (commission == null && c != null) commission = c;
-            if (bond == null && b != null) bond = b;
-            if (insurance == null && i != null) insurance = i;
-            if (notary == null && n != null) notary = n;
-            if (document == null && d != null) document = d;
-
-            // collect unique service areas
-            if (sa != null){
-                serviceAreas.add(sa.getCountyName());
-            }
-        }
-
-        // Map entities to response DTO and return result
+    /**
+     * Map Notary Overview DTO to Response
+     * @param nod, areas
+     * @return
+     */
+    private NotaryOverviewResponse mapToNotaryOverviewResponse(NotaryOverviewDTO nod, List<String> areas) {
         return new NotaryOverviewResponse(
-                mapCommission(commission),
-                mapBond(bond),
-                mapInsurance(insurance),
-                mapDocument(document),
-                mapNotary(notary),
-                new ArrayList<>(serviceAreas));
+                mapToCommission(nod),
+                mapToBond(nod),
+                mapToInsurance(nod),
+                mapToDocument(nod),
+                mapToContactInformation(nod),
+                areas
+        );
     }
 
     /**
-     * map commission entity to dto
-     * @param c
+     * Map Commission DTO to Response
+     * @param nod
      * @return
      */
-    private NotaryOverviewResponse.Commission mapCommission(NotaryCommission c) {
-        if (c == null) return null;
-        NotaryOverviewResponse.Commission dto = new NotaryOverviewResponse.Commission();
-        dto.setStatus(c.getStatus().name());
-        dto.setExpirationDate(c.getExpirationDate());
-        dto.setExpectedRenewalDate(c.getExpectedRenewalDate());
-        dto.setIsRenewalApplied(c.getIsRenewalApplied());
-        return dto;
+    private NotaryOverviewResponse.Commission mapToCommission(NotaryOverviewDTO nod) {
+        return new NotaryOverviewResponse.Commission(
+                nod.status().name(),
+                nod.expirationDate(),
+                nod.expectedRenewalDate(),
+                nod.isRenewalApplied()
+        );
     }
 
     /**
-     * map bond entity to dto
-     * @param b
+     * Map Bond DTO to Response
+     * @param nod
      * @return
      */
-    private NotaryOverviewResponse.Bond mapBond(NotaryBonds b) {
-        if (b == null) return null;
-        NotaryOverviewResponse.Bond dto = new NotaryOverviewResponse.Bond();
-        boolean expired = b.getExpirationDate().isBefore(LocalDate.now());
-        dto.setStatus(expired ? "Expired" : "Valid");
-        dto.setBond_amount(b.getBondAmount());
-        return dto;
+    private NotaryOverviewResponse.Bond mapToBond(NotaryOverviewDTO nod) {
+        return new NotaryOverviewResponse.Bond(
+                nod.bondStatus(),
+                nod.bondAmount()
+        );
     }
 
     /**
-     * map insurance entity to dto
-     * @param i
+     * Map Insurance DTO to Response
+     * @param nod
      * @return
      */
-    private NotaryOverviewResponse.EoInsurance mapInsurance(NotaryInsurance i) {
-        if (i == null) return null;
-        NotaryOverviewResponse.EoInsurance dto = new NotaryOverviewResponse.EoInsurance();
-        boolean expired = i.getExpirationDate().isBefore(LocalDate.now());
-        dto.setStatus(expired ? "Expired" : "Valid");
-        dto.setExpirationDate(i.getExpirationDate());
-        dto.setEffectiveDate(i.getEffectiveDate());
-        return dto;
+    private NotaryOverviewResponse.EoInsurance mapToInsurance(NotaryOverviewDTO nod) {
+        return new NotaryOverviewResponse.EoInsurance(
+                nod.insuranceStatus(),
+                nod.insuranceExpirationDate(),
+                nod.insuranceEffectiveDate()
+        );
     }
 
     /**
-     * map document entity to dto
-     * @param d
+     * Map Document DTO to Response
+     * @param nod
      * @return
      */
-    private NotaryOverviewResponse.Document mapDocument(NotaryDocument d) {
-        if (d == null) return null;
-        NotaryOverviewResponse.Document dto = new NotaryOverviewResponse.Document();
-        dto.setDocCategory(d.getDocCategory());
-        dto.setVerifiedStatus(d.getVerifiedStatus());
-        dto.setUploadDate(d.getUploadDate());
-        return dto;
+    private NotaryOverviewResponse.Document mapToDocument(NotaryOverviewDTO nod) {
+        return new NotaryOverviewResponse.Document(
+                nod.docCategory(),
+                nod.verifiedStatus(),
+                nod.uploadDate()
+        );
     }
 
     /**
-     * map notary entity to contact information dto
+     * Map Contact Information DTO to Response
+     * @param nod
+     * @return
+     */
+    private NotaryOverviewResponse.ContactInformation mapToContactInformation(NotaryOverviewDTO nod) {
+        return new NotaryOverviewResponse.ContactInformation(
+                nod.email(),
+                nod.phone(),
+                nod.address()
+        );
+    }
+
+    /**
+     * Map notary entity to status response
      * @param n
      * @return
      */
-    private NotaryOverviewResponse.ContactInpormation mapNotary(Notary n) {
-        if (n == null) return null;
-        NotaryOverviewResponse.ContactInpormation dto = new NotaryOverviewResponse.ContactInpormation();
-        dto.setEmail(n.getEmail());
-        dto.setPhone(n.getPhone());
-        dto.setAddress(n.getAddress());
-        return dto;
-    }
-
-    /**
-     * map notary entity to status response
-     * @param n
-     * @return
-     */
-    private NotaryStatusResponse mapNotaryStatus(Notary n) {
-        if (n == null) return null;
-        NotaryStatusResponse dto = new NotaryStatusResponse();
-        dto.setId(n.getId());
-        dto.setStatus(n.getStatus());
-        dto.setUpdatedAt(n.getUpdatedAt());
-        return dto;
+    private NotaryStatusResponse mapToNotaryStatusResponse(Notary n) {
+        return n == null ? null : new NotaryStatusResponse(
+                n.getId(),
+                n.getStatus(),
+                n.getUpdatedAt()
+        );
     }
 }

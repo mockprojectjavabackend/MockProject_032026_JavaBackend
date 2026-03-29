@@ -5,11 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.mockproject.notary_common.constant.DocCategory;
 import com.mockproject.notary_common.constant.VerifiedStatus;
-import lombok.*;
+
 
 /**
  * NotaryOverviewResponse
@@ -20,6 +22,7 @@ import lombok.*;
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 26-03-2026      DangQuoc      create
+ * 28-03-2026      DangQuoc      edit
  */
 @Getter
 @Setter
@@ -36,12 +39,12 @@ public class NotaryOverviewResponse {
     @JsonProperty("document")
     private Document document;
     @JsonProperty("contact_information")
-    private ContactInpormation contactInformation;
+    private ContactInformation contactInformation;
     @JsonProperty("service_areas")
     private List<String> serviceAreas;
 
+    @AllArgsConstructor
     @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Commission {
         private String status;
@@ -53,8 +56,8 @@ public class NotaryOverviewResponse {
         private Boolean isRenewalApplied;
     }
 
+    @AllArgsConstructor
     @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Bond {
         private String status;
@@ -62,8 +65,8 @@ public class NotaryOverviewResponse {
         private BigDecimal bond_amount;
     }
 
+    @AllArgsConstructor
     @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class EoInsurance {
         private String status;
@@ -73,8 +76,8 @@ public class NotaryOverviewResponse {
         private LocalDate effectiveDate;
     }
 
+    @AllArgsConstructor
     @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Document {
         @JsonProperty("doc_category")
@@ -85,10 +88,10 @@ public class NotaryOverviewResponse {
         private LocalDateTime uploadDate;
     }
 
+    @AllArgsConstructor
     @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class ContactInpormation {
+    public static class ContactInformation {
         private String email;
         private String phone;
         private String address;

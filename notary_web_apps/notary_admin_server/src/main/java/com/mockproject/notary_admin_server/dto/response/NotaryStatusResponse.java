@@ -4,11 +4,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mockproject.notary_common.constant.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.mockproject.notary_common.constant.UserStatus;
 
 /**
  * NotaryStatusResponse
@@ -19,6 +20,7 @@ import lombok.Setter;
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 26-03-2026      DangQuoc      create
+ * 29-03-2026      DangQuoc      edit
  */
 @Getter
 @Setter
