@@ -110,7 +110,7 @@ public class NotaryDocumentController {
     }
 
     /**
-     * Soft-delete a document (sets deletedAt, does not remove from DB).
+     * Permanently delete a document (removes the row from DB).
      */
     @DeleteMapping("/{doc_id}")
     public ResponseEntity<ApiSuccessResponse<DocumentDeleteResponseDTO>> deleteDocument(

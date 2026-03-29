@@ -1,6 +1,5 @@
 package com.mockproject.notary_admin_server.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,7 +26,4 @@ public class DocumentDeleteResponseDTO {
     private String id;
 
     private String status;
-
-    @JsonProperty("deleted_at")
-    private String deletedAt;
 }

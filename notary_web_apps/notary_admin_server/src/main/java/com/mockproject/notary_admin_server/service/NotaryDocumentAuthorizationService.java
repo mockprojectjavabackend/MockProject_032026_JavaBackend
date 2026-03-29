@@ -32,9 +32,9 @@ public class NotaryDocumentAuthorizationService {
 
 
     /*
-    * Bussiness logic for retrieving a document owned by a notary.
+    * Business logic for retrieving a document owned by a notary.
     * */
-    public NotaryDocument getActiveDocumentOwnedBy(UUID notaryId, UUID docId) {
+    public NotaryDocument getDocumentOwnedBy(UUID notaryId, UUID docId) {
         NotaryDocument document = notaryDocumentRepository.findById(docId)
                 .orElseThrow(() -> new AppException(
                         DocumentErrorCode.DOCUMENT_NOT_FOUND,
@@ -44,12 +44,6 @@ public class NotaryDocumentAuthorizationService {
             throw new AppException(
                     DocumentErrorCode.DOCUMENT_DOES_NOT_BELONG_TO_NOTARY,
                     Map.of("id", docId, "notaryId", notaryId));
-        }
-        //Handle soft-deleted documents
-        if (document.getDeletedAt() != null) {
-            throw new AppException(
-                    DocumentErrorCode.DOCUMENT_NOT_FOUND,
-                    Map.of("id", docId));
         }
 
         return document;

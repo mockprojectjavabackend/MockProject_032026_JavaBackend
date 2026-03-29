@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   application:
     name: notary_admin_server
 
@@ -21,3 +25,10 @@ server:
   port: 8080
   servlet:
     context-path: "/server"
+
+app:
+  upload:
+    base-url: http://localhost:8080/server
+    document:
+      dir: uploads/documents
+      max-size-bytes: 10485760        # 10 MB

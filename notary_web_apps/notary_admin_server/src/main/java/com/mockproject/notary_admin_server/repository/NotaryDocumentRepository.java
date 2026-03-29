@@ -28,13 +28,12 @@ import java.util.UUID;
 public interface NotaryDocumentRepository extends JpaRepository<NotaryDocument, UUID> {
 
     /**
-     * Find all active (not soft-deleted) documents for a notary with optional filters.
+     * Find all documents for a notary with optional filters.
      *
      */
     @Query("""
             SELECT d FROM NotaryDocument d
             WHERE d.notary.id = :notaryId
-              AND d.deletedAt IS NULL
               AND (:status IS NULL OR d.verifiedStatus = :status)
               AND (:docCategory IS NULL OR d.docCategory = :docCategory)
               AND (:fileName IS NULL OR LOWER(d.fileName) LIKE LOWER(CONCAT('%', :fileName, '%')))
@@ -52,21 +51,7 @@ public interface NotaryDocumentRepository extends JpaRepository<NotaryDocument, 
     );
 
     /**
-     * Find a single active document by its ID and notary ID.
-     */
-    @Query("""
-            SELECT d FROM NotaryDocument d
-            WHERE d.id = :id
-              AND d.notary.id = :notaryId
-              AND d.deletedAt IS NULL
-            """)
-    Optional<NotaryDocument> findActiveByIdAndNotaryId(
-            @Param("id") UUID id,
-            @Param("notaryId") UUID notaryId
-    );
-
-    /**
-     * Find any document (including soft-deleted) by its ID and notary ID.
+     * Find a document by its ID and notary ID.
      *
      */
     Optional<NotaryDocument> findByIdAndNotaryId(UUID id, UUID notaryId);

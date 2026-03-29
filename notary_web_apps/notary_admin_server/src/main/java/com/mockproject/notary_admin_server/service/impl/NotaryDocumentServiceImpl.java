@@ -28,10 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +49,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NotaryDocumentServiceImpl implements NotaryDocumentService {
 
+    private static final String DELETE_STATUS = "DELETED";
 
     // upload directory path (relative to working directory)
     @Value("${app.upload.document.dir}")
@@ -140,7 +137,7 @@ public class NotaryDocumentServiceImpl implements NotaryDocumentService {
         // validate notary exists
         findNotary(notaryId);
         // find document by docId, ensuring it's active and belongs to the notary
-        NotaryDocument document = notaryDocAuthService.getActiveDocumentOwnedBy(notaryId, docId);
+        NotaryDocument document = notaryDocAuthService.getDocumentOwnedBy(notaryId, docId);
 
 
         return notaryDocumentMapper.toResponseDTO(document);
@@ -202,7 +199,7 @@ public class NotaryDocumentServiceImpl implements NotaryDocumentService {
         findNotary(notaryId);
 
         // find document by docId, ensuring it's active and belongs to the notary
-        NotaryDocument document = notaryDocAuthService.getActiveDocumentOwnedBy(notaryId, docId);
+        NotaryDocument document = notaryDocAuthService.getDocumentOwnedBy(notaryId, docId);
 
         // apply updates in-place and save
         notaryDocumentMapper.updateEntity(document, dto);
@@ -214,11 +211,11 @@ public class NotaryDocumentServiceImpl implements NotaryDocumentService {
     }
 
     /**
-     * Soft-delete a document by setting its deletedAt timestamp.
+     * Hard-delete a document by removing its row from the database.
      *
      * @param notaryId the notary UUID
      * @param docId    the document UUID
-     * @return soft-delete confirmation including id, status, and deleted_at
+     * @return delete confirmation including id and status
      */
     @Override
     @Transactional
@@ -226,20 +223,17 @@ public class NotaryDocumentServiceImpl implements NotaryDocumentService {
         // validate notary exists
         findNotary(notaryId);
 
-        // find document by docId, ensuring it's active and belongs to the notary
-        NotaryDocument document = notaryDocAuthService.getActiveDocumentOwnedBy(notaryId, docId);
+        // find document by docId, ensuring it belongs to the notary
+        NotaryDocument document = notaryDocAuthService.getDocumentOwnedBy(notaryId, docId);
 
-        // soft-delete: stamp deletedAt and persist
-        LocalDateTime now = LocalDateTime.now();
-        document.setDeletedAt(now);
-        notaryDocumentRepository.save(document);
+        // hard-delete: remove row from database
+        notaryDocumentRepository.delete(document);
 
-        log.info("Soft-deleted document [{}] for notary [{}]", docId, notaryId);
+        log.info("Hard-deleted document [{}] for notary [{}]", docId, notaryId);
 
         return DocumentDeleteResponseDTO.builder()
                 .id(docId.toString())
-                .status("INACTIVE")
-                .deletedAt(notaryDocumentMapper.formatDateTime(now))
+                .status(DELETE_STATUS)
                 .build();
     }
 

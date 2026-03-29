@@ -1,5 +1,6 @@
 package com.mockproject.notary_admin_server.exception.errorCode;
 
+
 import com.mockproject.notary_admin_server.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,7 @@ public enum DocumentErrorCode implements ErrorCode {
     UPLOAD_FAILED(
             "DOC_007",
             "File upload failed due to a server error",
-            HttpStatus.INTERNAL_SERVER_ERROR),
+            HttpStatus.INTERNAL_SERVER_ERROR);
 
 
 

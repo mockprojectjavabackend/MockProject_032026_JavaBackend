@@ -38,8 +38,6 @@ public class DocumentResponseDTO {
     @JsonProperty("upload_date")
     private String uploadDate;
 
-    private String size;
-
     private String status;
 
     private String version;

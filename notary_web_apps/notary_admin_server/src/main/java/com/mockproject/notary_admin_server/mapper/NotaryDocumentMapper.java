@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter;
 public class NotaryDocumentMapper {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final String DATE_TIME_SUFFIX = "T00:00:00";
 
     /**
      * Map a NotaryDocument entity to DocumentResponseDTO.
@@ -40,8 +40,7 @@ public class NotaryDocumentMapper {
                 .docCategory(document.getDocCategory() != null ? document.getDocCategory().name() : null)
                 .fileName(document.getFileName())
                 .uploadDate(document.getUploadDate() != null ? document.getUploadDate().format(DATE_FORMATTER) : null)
-                .size(document.getSize())
-                .status(document.getVerifiedStatus() != null ? document.getVerifiedStatus().name().toLowerCase() : null)
+                .status(document.getVerifiedStatus() != null ? document.getVerifiedStatus().name() : null)
                 .version(String.valueOf(document.getVersion()))
                 .isCurrentVersion(String.valueOf(document.isCurrentVersion()))
                 .fileUrl(document.getFileUrl())
@@ -57,17 +56,7 @@ public class NotaryDocumentMapper {
      */
     public NotaryDocument toEntity(DocumentRequestDTO dto, Notary notary) {
         //parse DocCategory from string, default to null if unrecognised
-        DocCategory docCategory = null;
-        if (dto.getDocCategory() != null) {
-            String catStr = dto.getDocCategory().toLowerCase().trim().replace(" ", "_");
-            docCategory = switch (catStr) {
-                case "commission", "commission_cer" -> DocCategory.COMMISSION_CER;
-                case "training", "training_cer" -> DocCategory.TRAINING_CER;
-                case "fingerprint", "fingersprint" -> DocCategory.FINGERSPRINT;
-                case "identity", "identity_verification" -> DocCategory.IDENTITY_VERIFICATION;
-                default -> null;
-            };
-        }
+        DocCategory docCategory = resolveDocCategory(dto.getDocCategory());
 
         //parse VerifiedStatus from string, default to PENDING
         VerifiedStatus verifiedStatus = VerifiedStatus.PENDING;
@@ -96,20 +85,12 @@ public class NotaryDocumentMapper {
         }
 
         //parse uploadDate, default to now
-        LocalDateTime uploadDate = LocalDateTime.now();
-        if (dto.getUploadDate() != null && !dto.getUploadDate().isBlank()) {
-            try {
-                uploadDate = LocalDateTime.parse(dto.getUploadDate() + "T00:00:00");
-            } catch (Exception ignored) {
-                uploadDate = LocalDateTime.now();
-            }
-        }
+        LocalDateTime uploadDate = parseUploadDate(dto.getUploadDate());
 
         return NotaryDocument.builder()
                 .docCategory(docCategory)
                 .fileName(dto.getFileName())
                 .uploadDate(uploadDate)
-                .size(dto.getSize())
                 .verifiedStatus(verifiedStatus)
                 .version(version)
                 .isCurrentVersion(isCurrentVersion)
@@ -126,14 +107,7 @@ public class NotaryDocumentMapper {
      */
     public void updateEntity(NotaryDocument document, DocumentRequestDTO dto) {
         if (dto.getDocCategory() != null) {
-            String catStr = dto.getDocCategory().toLowerCase().trim().replace(" ", "_");
-            DocCategory mappedCat = switch (catStr) {
-                case "commission", "commission_cer" -> DocCategory.COMMISSION_CER;
-                case "training", "training_cer" -> DocCategory.TRAINING_CER;
-                case "fingerprint", "fingersprint" -> DocCategory.FINGERSPRINT;
-                case "identity", "identity_verification" -> DocCategory.IDENTITY_VERIFICATION;
-                default -> null;
-            };
+            DocCategory mappedCat = resolveDocCategory(dto.getDocCategory());
             if (mappedCat != null) {
                 document.setDocCategory(mappedCat);
             }
@@ -144,14 +118,11 @@ public class NotaryDocumentMapper {
         }
 
         if (dto.getUploadDate() != null && !dto.getUploadDate().isBlank()) {
-            try {
-                document.setUploadDate(LocalDateTime.parse(dto.getUploadDate() + "T00:00:00"));
-            } catch (Exception ignored) {
-            }
+            document.setUploadDate(parseUploadDate(dto.getUploadDate()));
         }
 
-        if (dto.getSize() != null) {
-            document.setSize(dto.getSize());
+        if (dto.getFileUrl() != null) {
+            document.setFileUrl(dto.getFileUrl());
         }
 
         if (dto.getStatus() != null) {
@@ -171,22 +142,44 @@ public class NotaryDocumentMapper {
         if (dto.getIsCurrentVersion() != null) {
             document.setCurrentVersion(Boolean.parseBoolean(dto.getIsCurrentVersion()));
         }
+    }
 
-        if (dto.getFileUrl() != null) {
-            document.setFileUrl(dto.getFileUrl());
+    /* ==================== private helpers ==================== */
+
+    /**
+     * Resolve a document category string to its enum value.
+     *
+     * @param categoryStr raw category string from the request
+     * @return the matched DocCategory, or null if unrecognised/null
+     */
+    private DocCategory resolveDocCategory(String categoryStr) {
+        if (categoryStr == null) {
+            return null;
         }
+        String normalised = categoryStr.toLowerCase().trim().replace(" ", "_");
+        return switch (normalised) {
+            case "commission", "commission_cer" -> DocCategory.COMMISSION_CER;
+            case "training", "training_cer"     -> DocCategory.TRAINING_CER;
+            case "fingerprint", "fingersprint"  -> DocCategory.FINGERSPRINT;
+            case "identity", "identity_verification" -> DocCategory.IDENTITY_VERIFICATION;
+            default -> null;
+        };
     }
 
     /**
-     * Format a LocalDateTime as an ISO-8601 string for API responses.
+     * Parse an upload date string (yyyy-MM-dd), defaulting to now on null/blank/invalid input.
      *
-     * @param dateTime the datetime to format
-     * @return formatted string, or null if input is null
+     * @param dateStr the date string to parse
+     * @return parsed LocalDateTime, or LocalDateTime.now() as fallback
      */
-    public String formatDateTime(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return null;
+    private LocalDateTime parseUploadDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return LocalDateTime.now();
         }
-        return dateTime.format(DATETIME_FORMATTER) + "Z";
+        try {
+            return LocalDateTime.parse(dateStr + DATE_TIME_SUFFIX);
+        } catch (Exception ignored) {
+            return LocalDateTime.now();
+        }
     }
 }
