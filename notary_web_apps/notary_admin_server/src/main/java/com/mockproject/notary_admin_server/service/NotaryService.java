@@ -49,11 +49,11 @@ public class NotaryService {
     }
 
     private void applyCommonFields(Notary notary, UpdateNotaryInfoRequest request) {
-        if (request.phone() != null) notary.setPhone(request.phone());
-        if (request.photoUrl() != null) notary.setPhotoUrl(request.photoUrl());
-        if (request.dateOfBirth() != null) notary.setDateOfBirth(request.dateOfBirth());
-        if (request.startDate() != null) notary.setStartDate(request.startDate());
-        if (request.address() != null) notary.setAddress(request.address());
+        if (request.getPhone() != null) notary.setPhone(request.getPhone());
+        if (request.getPhotoUrl() != null) notary.setPhotoUrl(request.getPhotoUrl());
+        if (request.getDateOfBirth() != null) notary.setDateOfBirth(request.getDateOfBirth() );
+        if (request.getStartDate() != null) notary.setStartDate(request.getStartDate());
+        if (request.getAddress() != null) notary.setAddress(request.getAddress());
         notary.setUpdatedAt(LocalDateTime.now());
     }
 
@@ -68,12 +68,12 @@ public class NotaryService {
         Notary notary = findNotary(idNotary);
 
         applyCommonFields(notary, request);
-        if (request.email() != null) notary.setEmail(request.email());
-        if (request.fullName() != null) notary.setFullName(request.fullName());
-        if (request.ssn() != null) notary.setSsn(request.ssn());
-        if (request.status() != null) notary.setStatus(UserStatus.valueOf(request.status()));
-        if (request.internalNotes() != null) notary.setInternalNotes(request.internalNotes());
-        if (request.employmentType() != null) notary.setEmploymentType(request.employmentType());
+        if (request.getEmail() != null) notary.setEmail(request.getEmail());
+        if (request.getFullName()!= null) notary.setFullName(request.getFullName());
+        if (request.getSsn() != null) notary.setSsn(request.getSsn());
+        if (request.getStatus()!= null) notary.setStatus(request.getStatus());
+        if (request.getInternalNotes() != null) notary.setInternalNotes(request.getInternalNotes());
+        if (request.getEmploymentType() != null) notary.setEmploymentType(request.getEmploymentType());
 
         Notary saved = notaryRepository.save(notary);
         return notaryMapper.toPublicResponse(saved);

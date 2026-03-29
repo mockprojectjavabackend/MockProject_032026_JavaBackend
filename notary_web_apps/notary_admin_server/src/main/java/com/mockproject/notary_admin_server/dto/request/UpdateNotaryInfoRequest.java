@@ -1,42 +1,56 @@
 package com.mockproject.notary_admin_server.dto.request;
 
 import com.mockproject.notary_common.constant.EmploymentType;
+import com.mockproject.notary_common.constant.UserStatus;
 import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
-public record UpdateNotaryInfoRequest(
-        @Size(min = 2, max = 128, message = "Full name must be between 2 and 128 characters")
-        String fullName,
+/**
+ * UpdateNotaryInfoRequest
+ *
+ * @version 1.0
 
-        @Pattern(regexp = "^\\+?[0-9]{10,20}$", message = "Invalid phone number format")
-        String phone,
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      PhamTam      create
+ */
 
+@Getter
+@Setter
+public class UpdateNotaryInfoRequest{
+
+        @Size(min = 2, max = 64, message = "Full name must be between 2 and 64 characters")
+        private String fullName;
+
+        @Size(max = 16, message = "Phone must not exceed 16 characters")
+        @Pattern(regexp = "^\\+?[0-9]*$", message = "Phone must contain only digits")
+        private String phone;
+
+        @Email(message = "Invalid email format")
         @Size(max = 64, message = "Email must not exceed 64 characters")
-        String email,
+        private String email;
 
-        @Size(max = 500, message = "Photo URL must not exceed 500 characters")
-        String photoUrl,
+        private String photoUrl;
 
         @Past(message = "Date of birth must be in the past")
-        LocalDate dateOfBirth,
+        private LocalDate dateOfBirth;
 
         @PastOrPresent(message = "Start date must not be in the future")
-        LocalDate startDate,
+        private LocalDate startDate;
 
-        @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{4}$", message = "SSN format must be XXX-XX-XXXX")
-        String ssn,
+        @Size(max = 32, message = "SSN must not exceed 32 characters")
+        private String ssn;
 
-        EmploymentType employmentType,
+        private EmploymentType employmentType;
 
-        @Size(max = 1000, message = "Internal notes must not exceed 1000 characters")
-        String internalNotes,
+        private String internalNotes;
 
-        @Size(max = 256, message = "Address must not exceed 256 characters")
-        String address,
+        @Size(max = 128, message = "Address must not exceed 128 characters")
+        private String address;
 
-        @Size(max = 16, message = "Status must not exceed 16 characters")
-        String status
-)
-{
+        private UserStatus status;
 }
