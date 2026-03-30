@@ -1,9 +1,13 @@
 package com.mockproject.notary_admin_server.mapper;
 
+import com.mockproject.notary_admin_server.dto.response.StateResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryAdminResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryPublicResponse;
 import com.mockproject.notary_common.entity.notary.Notary;
+import com.mockproject.notary_common.entity.notary.NotaryServiceArea;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * NotaryMapper
@@ -19,43 +23,47 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotaryMapper {
 
-    public NotaryPublicResponse toPublicResponse(Notary notary) {
-
-        return new NotaryPublicResponse(
-                notary.getId(),
-                notary.getFullName(),
-                notary.getEmail(),
-                notary.getPhone(),
-                notary.getStatus(),
-                notary.getPhotoUrl(),
-                notary.getDateOfBirth(),
-                notary.getStartDate(),
-                notary.getUser().getId(),
-                notary.getCreatedAt(),
-                notary.getUpdatedAt(),
-                notary.getAddress()
-        );
+    public NotaryPublicResponse toPublicResponse(Notary notary, List<StateResponse> states) {
+        return NotaryPublicResponse.builder()
+                .id(notary.getId())
+                .fullName(notary.getFullName())
+                .email(notary.getEmail())
+                .phone(notary.getPhone())
+                .status(notary.getStatus())
+                .photoUrl(notary.getPhotoUrl())
+                .dateOfBirth(notary.getDateOfBirth())
+                .startDate(notary.getStartDate())
+                .userId(notary.getUser().getId())
+                .createdAt(notary.getCreatedAt())
+                .updatedAt(notary.getUpdatedAt())
+                .address(notary.getAddress())
+                .city(notary.getCity())
+                .zipCode(notary.getZipCode())
+                .states(states)
+                .build();
     }
 
-    public NotaryAdminResponse toAdminResponse(Notary notary) {
-
-        return new NotaryAdminResponse(
-                notary.getId(),
-                notary.getFullName(),
-                notary.getEmail(),
-                notary.getPhone(),
-                notary.getSsn(),
-                notary.getStatus(),
-                notary.getPhotoUrl(),
-                notary.getDateOfBirth(),
-                notary.getStartDate(),
-                notary.getUser().getId(),
-                notary.getEmploymentType(),
-                notary.getInternalNotes(),
-                notary.getCreatedAt(),
-                notary.getUpdatedAt(),
-                notary.getAddress()
-
-        );
+    public NotaryAdminResponse toAdminResponse(Notary notary, List<StateResponse> states) {
+        return NotaryAdminResponse.builder()
+                .id(notary.getId())
+                .fullName(notary.getFullName())
+                .email(notary.getEmail())
+                .phone(notary.getPhone())
+                .ssn(notary.getSsn())
+                .status(notary.getStatus())
+                .photoUrl(notary.getPhotoUrl())
+                .dateOfBirth(notary.getDateOfBirth())
+                .startDate(notary.getStartDate())
+                .userId(notary.getUser().getId())
+                .employmentType(notary.getEmploymentType())
+                .internalNotes(notary.getInternalNotes())
+                .createdAt(notary.getCreatedAt())
+                .updatedAt(notary.getUpdatedAt())
+                .address(notary.getAddress())
+                .city(notary.getCity())
+                .zipCode(notary.getZipCode())
+                .states(states)
+                .build();
     }
+
 }
