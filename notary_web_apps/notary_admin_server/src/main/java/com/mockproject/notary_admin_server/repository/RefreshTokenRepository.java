@@ -1,0 +1,49 @@
+package com.mockproject.notary_admin_server.repository;
+
+import com.mockproject.notary_common.constant.RevocationReason;
+import com.mockproject.notary_common.entity.RefreshToken;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
+    Optional<RefreshToken> findByJti(String jti);
+
+    Optional<RefreshToken> findByTokenHash(String tokenHash);
+
+    @Query("SELECT t FROM RefreshToken t WHERE t.user.id = :userId " +
+            "AND t.revoked = false AND t.expiresAt > :now ORDER BY t.issuedAt DESC")
+    List<RefreshToken> findActiveTokensByUserId(@Param("userId") String userId, @Param("now") Instant now);
+
+    List<RefreshToken> findByFamilyId(String familyId);
+
+    @Modifying
+    @Query("UPDATE RefreshToken t SET t.revoked = true, t.revokedAt = :now, " +
+            "t.revocationReason = :reason WHERE t.familyId = :familyId AND t.revoked = false")
+    int revokeAllByFamilyId(@Param("familyId") String familyId,
+                            @Param("now") Instant now,
+                            @Param("reason") RevocationReason reason);
+
+    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END " +
+            "FROM RefreshToken t WHERE t.jti = :jti AND t.revoked = false AND t.expiresAt > :now")
+    boolean existsValidTokenByJti(@Param("jti") String jti, @Param("now") Instant now);
+
+    @Modifying
+    @Query("UPDATE RefreshToken t SET t.revoked = true, t.revokedAt = :now, " +
+            "t.revocationReason = :reason WHERE t.user.id = :userId AND t.revoked = false")
+    int revokeAllByUserId(@Param("userId") UUID userId,
+                          @Param("now") Instant now,
+                          @Param("reason") RevocationReason reason);
+
+    @Modifying
+    @Query("DELETE FROM RefreshToken t WHERE t.expiresAt < :cutoffTime")
+    int deleteExpiredTokens(@Param("cutoffTime") Instant cutoffTime);
+}

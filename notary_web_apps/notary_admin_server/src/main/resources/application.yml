@@ -18,10 +18,13 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
 security:
-  public-endpoints: ${PUBLIC_ENDPOINTS:/oauth2/**,/auth/**,/api/v1/auth/**}
+  public-endpoints: ${PUBLIC_ENDPOINTS:}
 
 jwt:
   signerKey: ${JWT_SIGNER_KEY}
+  issuer: ${JWT_ISSUER:}
+  valid-duration: ${JWT_VALID_DURATION:}
+  refreshable-duration: ${JWT_REFRESHABLE_DURATION:}
 
 app:
   seed:

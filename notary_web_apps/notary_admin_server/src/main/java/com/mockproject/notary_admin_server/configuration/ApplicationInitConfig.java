@@ -59,7 +59,8 @@ public class ApplicationInitConfig {
                 return;
             }
 
-            Role userRole = getOrCreateRole(roleRepository, PredefinedRole.USER);
+            Role dispatcherRole = getOrCreateRole(roleRepository, PredefinedRole.DISPATCHER);
+            Role notaryRole = getOrCreateRole(roleRepository, PredefinedRole.NOTARY);
             Role adminRole = getOrCreateRole(roleRepository, PredefinedRole.ADMIN);
 
             boolean adminExists = userRepository.findByEmail(adminEmail).isPresent();
@@ -70,7 +71,8 @@ public class ApplicationInitConfig {
             }
 
             Set<Role> roles = new HashSet<>();
-            roles.add(userRole);
+            roles.add(dispatcherRole);
+            roles.add(notaryRole);
             roles.add(adminRole);
 
             User admin = User.builder()
