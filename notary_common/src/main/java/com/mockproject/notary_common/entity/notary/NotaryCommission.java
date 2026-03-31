@@ -89,6 +89,6 @@ public class NotaryCommission {
     private Notary notary;
 
     @Builder.Default
-    @OneToMany(mappedBy = "commission")
+    @OneToMany(mappedBy = "commission", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AuthorityScope> authorityScopes = new HashSet<>();
 }

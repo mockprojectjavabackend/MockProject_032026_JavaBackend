@@ -52,9 +52,6 @@ public class AuthorityScopeServiceImpl implements AuthorityScopeService {
         AuthorityScope scope = authorityScopeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("AuthorityScope not found"));
 
-        scope.setIsDeleted(true);
-        scope.setDeletedAt(LocalDateTime.now());
-
-        authorityScopeRepository.save(scope);
+        authorityScopeRepository.delete(scope);
     }
 }

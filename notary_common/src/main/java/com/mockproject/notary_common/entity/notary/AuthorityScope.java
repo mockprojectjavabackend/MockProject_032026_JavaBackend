@@ -39,7 +39,6 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "authority_scopes")
-@SQLRestriction("is_deleted = false")
 public class AuthorityScope {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -56,10 +55,4 @@ public class AuthorityScope {
     @JsonIgnore
     private NotaryCommission commission;
 
-    @Builder.Default
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 }

@@ -1,8 +1,10 @@
 package com.mockproject.notary_admin_server.dto.request;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 
+import com.mockproject.notary_common.constant.AuthorityType;
 import com.mockproject.notary_common.constant.CommissionStatus;
 
 import jakarta.validation.constraints.AssertTrue;
@@ -54,6 +56,9 @@ public class UpdateNotaryCommissionRequest {
 
     private Boolean isRenewalApplied;
     private String fileUrl;
+
+    @Size(min = 1, message = "At least one authority type is required")
+    private Set<AuthorityType> authorityTypes;
 
     @AssertTrue(message = "Expiration date must be after issue date")
     public boolean isValidDateRange() {

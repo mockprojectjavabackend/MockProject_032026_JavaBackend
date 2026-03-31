@@ -2,6 +2,7 @@ package com.mockproject.notary_admin_server.dto.response;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 import com.mockproject.notary_common.constant.CommissionStatus;
@@ -33,4 +34,6 @@ public class CommissionDetailResponse {
     private LocalDateTime updatedAt;
 
     private String fileUrl;
+
+    private Set<String> authorityTypes;
 }

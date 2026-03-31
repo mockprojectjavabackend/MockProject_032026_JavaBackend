@@ -1,8 +1,11 @@
 package com.mockproject.notary_admin_server.service.impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,11 +27,13 @@ import com.mockproject.notary_admin_server.repository.StateRepository;
 import com.mockproject.notary_admin_server.service.NotaryCommissionService;
 import com.mockproject.notary_common.constant.CommissionStatus;
 import com.mockproject.notary_common.entity.State;
+import com.mockproject.notary_common.entity.notary.AuthorityScope;
 import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryCommission;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 
 /**
  * NotaryCommissionServiceImpl
@@ -130,6 +135,12 @@ public class NotaryCommissionServiceImpl implements NotaryCommissionService {
         response.setStatus(commission.getStatus());
         response.setIsRenewalApplied(commission.getIsRenewalApplied());
         response.setFileUrl(commission.getFileUrl());
+        if (commission.getAuthorityScopes() != null) {
+            Set<String> authorityTypes = commission.getAuthorityScopes().stream()
+                    .map(scope -> scope.getAuthorityType().name())
+                    .collect(Collectors.toSet());
+            response.setAuthorityTypes(authorityTypes);
+        }
         response.setCreatedAt(commission.getCreatedAt());
         response.setUpdatedAt(commission.getUpdatedAt());
         return response;
@@ -149,11 +160,25 @@ public class NotaryCommissionServiceImpl implements NotaryCommissionService {
         commission.setExpectedRenewalDate(req.getExpectedRenewalDate());
         commission.setFileUrl(req.getFileUrl());
 
+        if (req.getAuthorityTypes() != null && !req.getAuthorityTypes().isEmpty()) {
+            Set<AuthorityScope> scopes = req.getAuthorityTypes().stream()
+                    .map(type -> {
+                        AuthorityScope scope = new AuthorityScope();
+                        scope.setAuthorityType(type);
+                        scope.setCommission(commission);
+                        return scope;
+                    })
+                    .collect(Collectors.toSet());
+
+            commission.setAuthorityScopes(scopes);
+        }
+
         notaryCommissionRepository.save(commission);
 
         return convertToDetailResponse(commission);
     }
 
+    @Transactional
     public CommissionDetailResponse updateCommission(UUID notaryId, UUID commissionId,
             UpdateNotaryCommissionRequest req) {
 
@@ -181,6 +206,19 @@ public class NotaryCommissionServiceImpl implements NotaryCommissionService {
         if (req.getFileUrl() != null) {
             commission.setFileUrl(req.getFileUrl());
         }
+        if (req.getAuthorityTypes() != null && !req.getAuthorityTypes().isEmpty()) {
+
+            Set<AuthorityScope> scopes = commission.getAuthorityScopes();
+
+            scopes.clear();
+
+            req.getAuthorityTypes().forEach(type -> {
+                AuthorityScope scope = new AuthorityScope();
+                scope.setAuthorityType(type);
+                scope.setCommission(commission);
+                scopes.add(scope);
+            });
+        }
         notaryCommissionRepository.save(commission);
 
         return convertToDetailResponse(commission);
@@ -194,7 +232,7 @@ public class NotaryCommissionServiceImpl implements NotaryCommissionService {
         if (!commission.getNotary().getId().equals(notaryId)) {
             throw ForbiddenException.accessDenied();
         }
-
+        commission.getAuthorityScopes().clear();
         commission.setIsDeleted(true);
 
         notaryCommissionRepository.save(commission);

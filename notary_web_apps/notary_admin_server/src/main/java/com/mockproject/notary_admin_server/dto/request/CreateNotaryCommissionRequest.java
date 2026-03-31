@@ -1,7 +1,10 @@
 package com.mockproject.notary_admin_server.dto.request;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
+
+import com.mockproject.notary_common.constant.AuthorityType;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Future;
@@ -50,6 +53,9 @@ public class CreateNotaryCommissionRequest {
 
     @NotNull(message = "NotaryId is required")
     private UUID notaryId;
+
+    @Size(min = 1, message = "At least one authority type is required")
+    private Set<AuthorityType> authorityTypes;
 
     private String fileUrl;
 
