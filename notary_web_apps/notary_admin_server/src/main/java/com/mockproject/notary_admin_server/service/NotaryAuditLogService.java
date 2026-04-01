@@ -1,15 +1,13 @@
 package com.mockproject.notary_admin_server.service;
 
-import com.mockproject.notary_admin_server.dto.response.AuditTrailResponse;
-import org.springframework.data.domain.Page;
+import com.mockproject.notary_admin_server.dto.response.AuditTrailDetailResponse;
+import com.mockproject.notary_admin_server.dto.response.AuditTrailPageResponse;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface NotaryAuditLogService {
-    List<AuditTrailResponse> getAuditTrail(
-            UUID notaryId,
-            String timeRange,
-            int page,
-            int limit);
+    AuditTrailPageResponse getAuditTrail(
+            UUID notaryId, String timeRange, UUID userId, String action, int page, int limit);
+
+    AuditTrailDetailResponse getAuditTrailDetail(UUID notaryId, UUID auditId);
 }

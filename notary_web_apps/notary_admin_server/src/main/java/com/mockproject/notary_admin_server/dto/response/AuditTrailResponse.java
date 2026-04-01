@@ -1,5 +1,7 @@
 package com.mockproject.notary_admin_server.dto.response;
 
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Data;
 

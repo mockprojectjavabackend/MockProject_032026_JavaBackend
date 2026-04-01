@@ -10,4 +10,5 @@ public class RecentActivityResponse {
     private String description;
     private String performedBy;
     private String timestamp;
+    private String documentName;
 }

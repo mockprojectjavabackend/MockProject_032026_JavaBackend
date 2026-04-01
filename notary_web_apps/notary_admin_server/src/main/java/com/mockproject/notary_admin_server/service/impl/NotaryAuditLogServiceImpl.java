@@ -1,9 +1,15 @@
 package com.mockproject.notary_admin_server.service.impl;
 
+import com.mockproject.notary_admin_server.dto.response.AuditTrailDetailResponse;
+import com.mockproject.notary_admin_server.dto.response.AuditTrailPageResponse;
 import com.mockproject.notary_admin_server.dto.response.AuditTrailResponse;
+import com.mockproject.notary_admin_server.dto.response.MetaResponse;
+import com.mockproject.notary_admin_server.exception.AppException;
+import com.mockproject.notary_admin_server.exception.errorCode.AuditErrorCode;
 import com.mockproject.notary_admin_server.repository.NotaryAuditLogRepository;
 import com.mockproject.notary_admin_server.repository.UserRepository;
 import com.mockproject.notary_admin_server.service.NotaryAuditLogService;
+import com.mockproject.notary_common.constant.AuditLogAction;
 import com.mockproject.notary_common.entity.notary.NotaryAuditLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -24,24 +30,63 @@ public class NotaryAuditLogServiceImpl implements NotaryAuditLogService {
     private final UserRepository userRepository; // để lấy tên admin
 
     @Override
-    public List<AuditTrailResponse> getAuditTrail(
-            UUID notaryId, String timeRange, int page, int limit) {
+    public AuditTrailPageResponse getAuditTrail(
+            UUID notaryId, String timeRange, UUID userId, String action, int page, int limit) {
 
-        // Bước 1: Tính fromTime dựa theo timeRange
         LocalDateTime fromTime = calculateFromTime(timeRange);
 
-        // Bước 2: Query database
-        List<NotaryAuditLog> logs = notaryAuditLogRepository
-                .findByNotaryIdAndTimeRange(
-                        notaryId,
-                        fromTime,
-                        PageRequest.of(page - 1, limit) // page bắt đầu từ 0 trong Spring
-                );
+        // Parse action string → enum (null nếu không filter)
+        AuditLogAction auditAction = null;
+        if (action != null && !action.isBlank()) {
+            try {
+                auditAction = AuditLogAction.valueOf(action.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                auditAction = null;
+            }
+        }
 
-        // Bước 3: Map từng log → AuditTrailResponse
-        return logs.stream()
+        List<NotaryAuditLog> logs = notaryAuditLogRepository
+                .findByNotaryIdWithFilters(
+                        notaryId, fromTime, userId, auditAction,
+                        PageRequest.of(page - 1, limit));
+
+        long total = notaryAuditLogRepository
+                .countByNotaryIdWithFilters(notaryId, fromTime, userId, auditAction);
+
+        List<AuditTrailResponse> data = logs.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+
+        return AuditTrailPageResponse.builder()
+                .data(data)
+                .meta(MetaResponse.builder().total(total).build())
+                .build();
+    }
+
+    /**
+     * Get detailed audit trail entry by ID
+     *
+     * @param notaryId UUID of the notary
+     * @param auditId  UUID of the audit log entry
+     * @return detailed audit trail response
+     */
+    @Override
+    public AuditTrailDetailResponse getAuditTrailDetail(UUID notaryId, UUID auditId) {
+        NotaryAuditLog log = notaryAuditLogRepository
+                .findByIdAndNotaryId(auditId, notaryId)
+                .orElseThrow(() -> new AppException(AuditErrorCode.AUDIT_LOG_NOT_FOUND));
+
+        String adminName = resolveAdminName(log.getChangeByUserId());
+
+        return AuditTrailDetailResponse.builder()
+                .id(log.getId().toString())
+                .timestamp(resolveTimestamp(log))
+                .action(log.getAction().name())
+                .tableName(log.getTableName())
+                .administrator(adminName)
+                .beforeValue(log.getOldValue())
+                .afterValue(log.getNewValue())
+                .build();
     }
 
     // Tính thời gian bắt đầu lọc dựa theo timeRange
@@ -99,4 +144,33 @@ public class NotaryAuditLogServiceImpl implements NotaryAuditLogService {
         Object value = valueMap.values().iterator().next();
         return value != null ? value.toString() : "";
     }
+
+    /**
+     * Resolve admin full name from user ID
+     *
+     * @param userId UUID of the user who performed the action
+     * @return full name of the admin or "Unknown" if not found
+     */
+    private String resolveAdminName(UUID userId) {
+        if (userId == null)
+            return "Unknown";
+        return userRepository.findById(userId)
+                .map(user -> user.getFullName())
+                .orElse("Unknown");
+    }
+
+    /**
+     * Resolve timestamp from audit log
+     *
+     * @param log audit log entity
+     * @return formatted timestamp string or "N/A" if null
+     */
+    private String resolveTimestamp(NotaryAuditLog log) {
+        if (log.getCreatedAt() != null) {
+            return log.getCreatedAt()
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        }
+        return "N/A";
+    }
+
 }
