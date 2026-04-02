@@ -1,5 +1,14 @@
 package com.mockproject.notary_admin_server.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.mockproject.notary_admin_server.dto.request.AdminInviteNotaryRequest;
 import com.mockproject.notary_admin_server.dto.response.NotaryInviteResponse;
 import com.mockproject.notary_admin_server.exception.AppException;
@@ -18,19 +27,11 @@ import com.mockproject.notary_common.entity.Role;
 import com.mockproject.notary_common.entity.User;
 import com.mockproject.notary_common.entity.UserInvitationToken;
 import com.mockproject.notary_common.entity.notary.Notary;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -61,7 +62,8 @@ public class AdminNotaryServiceImpl implements AdminNotaryService {
             throw new AppException(NotaryErrorCode.SSN_ALREADY_EXISTS);
         }
 
-        Role notaryRole = roleRepository.findByRoleName(PredefinedRole.NOTARY)
+        Role notaryRole = roleRepository
+                .findByRoleName(PredefinedRole.NOTARY)
                 .orElseThrow(() -> new AppException(RoleErrorCode.ROLE_NOT_FOUND));
 
         User user = User.builder()
@@ -78,7 +80,10 @@ public class AdminNotaryServiceImpl implements AdminNotaryService {
                 .fullName(request.getFullName().trim())
                 .phone(request.getPhone().trim())
                 .dateOfBirth(request.getDateOfBirth())
-                .address(request.getAddress() == null ? null : request.getAddress().trim())
+                .address(
+                        request.getAddress() == null
+                                ? null
+                                : request.getAddress().trim())
                 .employmentType(request.getEmploymentType())
                 .startDate(request.getStartDate())
                 .internalNotes(request.getInternalNotes())

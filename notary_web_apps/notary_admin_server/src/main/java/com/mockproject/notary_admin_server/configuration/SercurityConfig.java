@@ -31,7 +31,6 @@ import lombok.experimental.NonFinal;
  * 27-03-2026      VanTien     create
  * 29-03-2026      VanTien     edit
  */
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

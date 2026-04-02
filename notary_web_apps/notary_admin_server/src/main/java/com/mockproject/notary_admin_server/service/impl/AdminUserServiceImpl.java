@@ -1,5 +1,9 @@
 package com.mockproject.notary_admin_server.service.impl;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.mockproject.notary_admin_server.dto.request.AdminCreateUserRequest;
 import com.mockproject.notary_admin_server.dto.response.UserResponse;
 import com.mockproject.notary_admin_server.exception.AppException;
@@ -13,13 +17,11 @@ import com.mockproject.notary_common.constant.PredefinedRole;
 import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.Role;
 import com.mockproject.notary_common.entity.User;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -39,7 +41,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     public UserResponse createUser(AdminCreateUserRequest request) {
         String email = request.getEmail().toLowerCase();
 
-        if(userRepository.existsByEmail(request.getEmail())){
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
@@ -47,10 +49,11 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         User user = userMapper.toUser(request);
 
-        //Set auth
+        // Set auth
         user.setStatus(UserStatus.INACTIVE);
 
-        Role role = roleRepository.findByRoleName(request.getRole())
+        Role role = roleRepository
+                .findByRoleName(request.getRole())
                 .orElseThrow(() -> new AppException(RoleErrorCode.ROLE_NOT_FOUND));
 
         user.getRoles().add(role);
@@ -61,6 +64,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         return userMapper.toUserResponse(saved);
     }
+
     private void validateRole(PredefinedRole role) {
         if (role != PredefinedRole.NOTARY && role != PredefinedRole.DISPATCHER) {
             throw new AppException(RoleErrorCode.ROLE_NOT_FOUND);

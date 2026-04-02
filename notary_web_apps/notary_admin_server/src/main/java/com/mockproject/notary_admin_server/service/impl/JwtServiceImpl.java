@@ -209,7 +209,8 @@ public class JwtServiceImpl implements JwtService {
 
         // Revoke all refresh tokens in database
 
-        log.info("Revoked {} refresh tokens for user {}",
+        log.info(
+                "Revoked {} refresh tokens for user {}",
                 refreshTokenRepository.revokeAllByUserId(userId, Instant.now(), RevocationReason.USER_LOGOUT_ALL),
                 user.getEmail());
     }
@@ -367,9 +368,7 @@ public class JwtServiceImpl implements JwtService {
 
             String tokenTypeInClaim = claimsSet.getStringClaim(TOKEN_TYPE_CLAIM);
             if (tokenTypeInClaim == null || tokenTypeInClaim.isBlank()) {
-                log.warn(
-                        "Token type claim is missing or blank during verification. Expected: {}",
-                        tokenType.name());
+                log.warn("Token type claim is missing or blank during verification. Expected: {}", tokenType.name());
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 

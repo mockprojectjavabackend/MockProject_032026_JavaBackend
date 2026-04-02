@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
  * 01-04-2026      VanTien     create
  * 03-04-2026      VanTien     add set-password, refresh, logout endpoints
  */
-
 @RestController
 @Slf4j(topic = "AUTHENTICATION-CONTROLLER")
 @RequiredArgsConstructor
@@ -60,9 +59,9 @@ public class AuthenticationController {
      * Validates the invitation token, sets the password, activates the account.
      */
     @PostMapping(value = "set-password", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApiSuccessResponse<Void>> setPassword(
-            @Valid @RequestBody SetPasswordRequest request) {
-        log.info("Set-password request received (token prefix={}...)",
+    public ResponseEntity<ApiSuccessResponse<Void>> setPassword(@Valid @RequestBody SetPasswordRequest request) {
+        log.info(
+                "Set-password request received (token prefix={}...)",
                 request.getToken() != null && request.getToken().length() > 8
                         ? request.getToken().substring(0, 8)
                         : "?");
@@ -87,8 +86,7 @@ public class AuthenticationController {
      * Revokes the given refresh token, effectively logging out this session.
      */
     @PostMapping(value = "logout", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApiSuccessResponse<Void>> logout(
-            @Valid @RequestBody LogoutRequest request) {
+    public ResponseEntity<ApiSuccessResponse<Void>> logout(@Valid @RequestBody LogoutRequest request) {
         log.info("Logout request received");
         authenticationService.logout(request.getRefreshToken());
         return ResponseEntity.ok(ApiSuccessResponse.ok(null));

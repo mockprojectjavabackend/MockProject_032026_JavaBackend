@@ -1,6 +1,5 @@
 package com.mockproject.notary_admin_server.configuration;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
  * 01-04-2026      VanTien     create
  * 02-04-2026      VanTien     edit
  */
-
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

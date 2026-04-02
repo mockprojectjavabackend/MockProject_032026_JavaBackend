@@ -1,8 +1,8 @@
 package com.mockproject.notary_admin_server.dto.request;
 
+import jakarta.validation.constraints.*;
 
 import com.mockproject.notary_common.constant.PredefinedRole;
-import jakarta.validation.constraints.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

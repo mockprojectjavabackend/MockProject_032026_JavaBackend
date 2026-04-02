@@ -1,32 +1,32 @@
 package com.mockproject.notary_admin_server.service.impl;
 
-import com.mockproject.notary_admin_server.exception.errorCode.JwtErrorCode;
-import com.mockproject.notary_admin_server.exception.errorCode.TokenErrorCode;
-import com.mockproject.notary_admin_server.repository.UserInvitationTokenRepository;
-import com.mockproject.notary_common.constant.UserStatus;
-import com.mockproject.notary_common.entity.UserInvitationToken;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
+import java.time.LocalDateTime;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mockproject.notary_admin_server.dto.request.*;
 import com.mockproject.notary_admin_server.dto.response.AuthenticationResponse;
 import com.mockproject.notary_admin_server.exception.AppException;
+import com.mockproject.notary_admin_server.exception.errorCode.JwtErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.PasswordErrorCode;
+import com.mockproject.notary_admin_server.exception.errorCode.TokenErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.UserErrorCode;
+import com.mockproject.notary_admin_server.repository.UserInvitationTokenRepository;
 import com.mockproject.notary_admin_server.repository.UserRepository;
 import com.mockproject.notary_admin_server.service.AuthenticationService;
 import com.mockproject.notary_admin_server.service.JwtService;
+import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.User;
+import com.mockproject.notary_common.entity.UserInvitationToken;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -72,16 +72,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationResponse refreshToken(String refreshToken) {
         SignedJWT signedJWT = jwtService.verifyRefreshToken(refreshToken);
 
-        try{
+        try {
             JWTClaimsSet jwtClaimsSet = signedJWT.getJWTClaimsSet();
 
             String email = jwtClaimsSet.getSubject();
 
-            User user = userRepository
-                    .findByEmail(email)
-                    .orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
+            User user =
+                    userRepository.findByEmail(email).orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
 
-            if(user.getStatus() != UserStatus.ACTIVE) {
+            if (user.getStatus() != UserStatus.ACTIVE) {
                 throw new AppException(UserErrorCode.USER_STATUS_INVALID);
             }
 
@@ -113,23 +112,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void logoutAll() {
+    public void logoutAll() {}
 
-    }
-
-//    @Override
-//    public void verifyUser(VerifyUserRequest request) {}
-//
-//    @Override
-//    public void forgotPassword(ForgotPasswordRequest request) {}
-//
-//    @Override
-//    public void resetPassword(ResetPasswordRequest request) {}
+    //    @Override
+    //    public void verifyUser(VerifyUserRequest request) {}
+    //
+    //    @Override
+    //    public void forgotPassword(ForgotPasswordRequest request) {}
+    //
+    //    @Override
+    //    public void resetPassword(ResetPasswordRequest request) {}
 
     @Override
     @Transactional
     public void setPassword(SetPasswordRequest request) {
-        UserInvitationToken invitationToken = invitationTokenRepository.findByToken(request.getToken())
+        UserInvitationToken invitationToken = invitationTokenRepository
+                .findByToken(request.getToken())
                 .orElseThrow(() -> new AppException(TokenErrorCode.TOKEN_INVALID));
 
         if (Boolean.TRUE.equals(invitationToken.getUsed())) {

@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
  * 27-03-2026      VanTien     create
  * 03-04-2026      VanTien     add HMAC signature & expiry verification
  */
-
 @Component
 @Slf4j(topic = "CUSTOM-JWT-DECODER")
 public class CustomJwtDecoder implements JwtDecoder {

@@ -31,7 +31,6 @@ import tools.jackson.databind.ObjectMapper;
  * -----------------------------------------------
  * 27-03-2026      VanTien     create
  */
-
 @Slf4j
 @Component
 @RequiredArgsConstructor

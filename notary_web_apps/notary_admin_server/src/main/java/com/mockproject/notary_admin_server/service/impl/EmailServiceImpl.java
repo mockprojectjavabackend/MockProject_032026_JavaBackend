@@ -45,10 +45,7 @@ public class EmailServiceImpl implements EmailService {
                 .replace("{{inviteLink}}", inviteLink)
                 .replace("{{expiryHours}}", String.valueOf(INVITE_EXPIRY_HOURS));
 
-        sendHtmlEmail(
-                toEmail,
-                "Kích hoạt tài khoản Công chứng viên",
-                html);
+        sendHtmlEmail(toEmail, "Kích hoạt tài khoản Công chứng viên", html);
 
         log.info("Invitation email sent successfully to: {}", toEmail);
     }
@@ -86,8 +83,7 @@ public class EmailServiceImpl implements EmailService {
 
     private String escapeHtml(String input) {
         if (input == null) return "";
-        return input
-                .replace("&", "&amp;")
+        return input.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
