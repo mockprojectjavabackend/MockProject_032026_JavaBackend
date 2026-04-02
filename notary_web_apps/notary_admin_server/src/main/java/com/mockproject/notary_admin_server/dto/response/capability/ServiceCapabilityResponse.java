@@ -1,8 +1,8 @@
 package com.mockproject.notary_admin_server.dto.response.capability;
 
 import lombok.*;
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.util.HashSet;
 import java.util.Set;

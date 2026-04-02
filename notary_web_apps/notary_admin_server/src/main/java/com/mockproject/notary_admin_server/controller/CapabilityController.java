@@ -2,11 +2,12 @@ package com.mockproject.notary_admin_server.controller;
 
 import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import com.mockproject.notary_admin_server.dto.request.Capability.CapabilityRequest;
-import com.mockproject.notary_admin_server.dto.response.capability.CapabilityResponse;
 import com.mockproject.notary_admin_server.dto.response.capability.ServiceCapabilityResponse;
 import com.mockproject.notary_admin_server.service.ICapabilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -29,19 +30,19 @@ public class CapabilityController {
     private final ICapabilityService capabilityService;
 
     @GetMapping("/{notaryId}/service_capability")
-    public ApiSuccessResponse<ServiceCapabilityResponse> getCapability(@PathVariable UUID notaryId) {
-        return ApiSuccessResponse.ok(capabilityService.getCapability(notaryId));
+    public ResponseEntity<ApiSuccessResponse<ServiceCapabilityResponse>> getCapability(@PathVariable UUID notaryId) {
+        return ResponseEntity.ok(ApiSuccessResponse.ok(capabilityService.getCapability(notaryId)));
     }
 
     @PostMapping("/{notaryId}/service_capability")
-    public ApiSuccessResponse<ServiceCapabilityResponse> createCapability(@PathVariable UUID notaryId,
+    public ResponseEntity<ApiSuccessResponse<ServiceCapabilityResponse>> createCapability(@PathVariable UUID notaryId,
                                                                           @Valid @RequestBody CapabilityRequest request) {
-        return ApiSuccessResponse.created(capabilityService.createCapability(notaryId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.created(capabilityService.createCapability(notaryId, request)));
     }
 
     @PutMapping("/{notaryId}/service_capability")
-    public ApiSuccessResponse<ServiceCapabilityResponse> updateCapability(@PathVariable UUID notaryId,
+    public ResponseEntity<ApiSuccessResponse<ServiceCapabilityResponse>> updateCapability(@PathVariable UUID notaryId,
                                                                           @Valid @RequestBody CapabilityRequest request) {
-        return ApiSuccessResponse.ok(capabilityService.updateCapability(notaryId, request));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(capabilityService.updateCapability(notaryId, request)));
     }
 }
