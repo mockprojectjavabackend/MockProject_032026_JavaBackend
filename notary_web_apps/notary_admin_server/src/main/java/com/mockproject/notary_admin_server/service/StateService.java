@@ -1,35 +1,23 @@
 package com.mockproject.notary_admin_server.service;
 
-import com.mockproject.notary_admin_server.dto.response.StateResponse;
-import com.mockproject.notary_admin_server.mapper.StateMapper;
-import com.mockproject.notary_admin_server.repository.StateRepository;
-import com.mockproject.notary_common.entity.State;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.UUID;
 
-@Service
-public class StateService {
+import com.mockproject.notary_admin_server.dto.response.StateResponse;
 
-    private final StateRepository stateRepository;
-    private final StateMapper stateMapper;
+/**
+ * StateService
+ *
+ * @version 1.0
 
-    public StateService(StateRepository stateRepository, StateRepository stateRepository1, StateMapper stateMapper) {
-        this.stateRepository = stateRepository1;
-        this.stateMapper = stateMapper;
-    }
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 02-04-2026      PhamTam      create
+ */
+public interface StateService {
 
-    public List<StateResponse> getAllState()
-    {
-        List<State> states = stateRepository.findAll();
-        return  stateMapper.toStateResponseList(states);
-    }
+    List<StateResponse> getAllStates();
 
-    List<StateResponse> getAllStateByNotary(UUID notaryId){
-
-        List<State> states  = stateRepository.findAllByNotaryId(notaryId);
-        return stateMapper.toStateResponseList(states);
-
-    }
+    List<StateResponse> getAllStatesByNotary(UUID notaryId);
 }

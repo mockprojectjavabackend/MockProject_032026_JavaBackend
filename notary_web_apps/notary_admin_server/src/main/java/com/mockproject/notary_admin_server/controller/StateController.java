@@ -1,15 +1,15 @@
 package com.mockproject.notary_admin_server.controller;
 
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
 
 import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import com.mockproject.notary_admin_server.dto.response.StateResponse;
-import com.mockproject.notary_admin_server.service.StateService;
+import com.mockproject.notary_admin_server.service.impl.StateServiceImpl;
 
 /**
  * StateController
@@ -26,16 +26,16 @@ import com.mockproject.notary_admin_server.service.StateService;
 @RequestMapping("/api/states")
 public class StateController {
 
-    private final StateService stateService;
+    private final StateServiceImpl stateService;
 
-    public StateController(StateService stateService) {
+    public StateController(StateServiceImpl stateService) {
         this.stateService = stateService;
     }
 
     @GetMapping()
     public ResponseEntity<ApiSuccessResponse<List<StateResponse>>> getAllStates() {
         return ResponseEntity.ok(
-                ApiSuccessResponse.ok(stateService.getAllState())
+                ApiSuccessResponse.ok(stateService.getAllStates())
         );
     }
 

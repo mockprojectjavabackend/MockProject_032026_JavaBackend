@@ -1,14 +1,14 @@
 package com.mockproject.notary_admin_server.dto.request;
 
-import com.mockproject.notary_common.constant.EmploymentType;
-import com.mockproject.notary_common.constant.UserStatus;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import com.mockproject.notary_common.constant.EmploymentType;
+import com.mockproject.notary_common.constant.UserStatus;
 
 /**
  * UpdateNotaryInfoRequest

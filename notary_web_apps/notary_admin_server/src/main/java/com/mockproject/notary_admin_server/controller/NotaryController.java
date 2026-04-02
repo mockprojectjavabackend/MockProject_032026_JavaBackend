@@ -1,8 +1,6 @@
 package com.mockproject.notary_admin_server.controller;
 
-import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
-import com.mockproject.notary_admin_server.dto.request.UpdateNotaryInfoRequest;
-import com.mockproject.notary_admin_server.service.NotaryService;
+import java.util.UUID;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
@@ -11,7 +9,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.UUID;
+import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
+import com.mockproject.notary_admin_server.dto.request.UpdateNotaryInfoRequest;
+import com.mockproject.notary_admin_server.dto.response.NotaryBaseResponse;
+import com.mockproject.notary_admin_server.service.impl.NotaryServiceImpl;
 
 /**
  * NotaryController
@@ -28,23 +29,22 @@ import java.util.UUID;
 @Validated
 @RequestMapping("/api/notaries")
 public class NotaryController {
-    private final NotaryService notaryService;
+    private final NotaryServiceImpl notaryService;
 
-    public NotaryController(NotaryService notaryService) {
+    public NotaryController(NotaryServiceImpl notaryService) {
         this.notaryService = notaryService;
     }
 
     @GetMapping("/{notary_id}/personal-info")
     public ResponseEntity<ApiSuccessResponse<?>> getPersonalInfo(@PathVariable @NotNull UUID notary_id) {
-        boolean isAdmin = false;
+        boolean isAdmin = true;
         boolean isOwner = true;
         if (!isAdmin && !isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to access notary with id: " + notary_id);
         }
-        if (isAdmin) {
-            return ResponseEntity.ok(ApiSuccessResponse.ok(notaryService.getNotaryInfoForAdmin(notary_id)));
-        }
-        return ResponseEntity.ok(ApiSuccessResponse.ok(notaryService.getPersonalInfo(notary_id)));
+        NotaryBaseResponse response = notaryService.getPersonalInfo(notary_id, isAdmin);
+
+        return ResponseEntity.ok(ApiSuccessResponse.ok(response));
     }
 
     @PutMapping("/{notary_id}/personal-info")
@@ -56,9 +56,7 @@ public class NotaryController {
         if (!isAdmin && !isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to access notary with id: " + notary_id);
         }
-        if (isAdmin) {
-            return ResponseEntity.ok(ApiSuccessResponse.ok(notaryService.updatePersonalInfoByAdmin(notary_id, request)));
-        }
-        return ResponseEntity.ok(ApiSuccessResponse.ok(notaryService.updatePersonalInfo(notary_id, request)));
+        NotaryBaseResponse response = notaryService.updatePersonalInfo(notary_id, request, isAdmin);
+        return ResponseEntity.ok(ApiSuccessResponse.ok(response));
     }
 }
