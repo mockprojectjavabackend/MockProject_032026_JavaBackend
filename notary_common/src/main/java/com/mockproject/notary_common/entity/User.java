@@ -25,6 +25,8 @@ import java.util.UUID;
  * -----------------------------------------------
  * 25-03-2026      TranMinh    create
  * 26-03-2026      VanTu       edit
+ * 31-03-2026      VanTien     edit
+ * 2-04-2026       VanTien     edit
  */
 @Getter
 @Setter
@@ -43,25 +45,13 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 64)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
-
-    @Column(name = "phone_number", nullable = false, length = 16)
-    private String phoneNumber;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(length = 16)
+    @Column(length = 16, nullable = false)
     private UserStatus status = UserStatus.INACTIVE;
-
-    @Column(name = "full_name", nullable = false, length = 64)
-    private String fullName;
-
-    @Column(nullable = false)
-    private LocalDate dob;
-
-    @Column(nullable = false, length = 128)
-    private String address;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -75,7 +65,7 @@ public class User {
     private LocalDateTime deletedAt;
 
     // one-way relationship
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
@@ -84,6 +74,6 @@ public class User {
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Notary notary;
 }

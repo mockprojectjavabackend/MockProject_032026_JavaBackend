@@ -16,4 +16,3 @@ public class AuthenticationResponse {
     String refreshToken;
     boolean authenticated;
 }
-

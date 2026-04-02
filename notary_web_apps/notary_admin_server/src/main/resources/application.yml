@@ -17,6 +17,21 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
+  mail:
+    host: ${MAIL_HOST:smtp-relay.brevo.com}
+    port: ${MAIL_PORT:587}
+    username: ${BREVO_SMTP_LOGIN}
+    password: ${BREVO_SMTP_KEY}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 security:
   public-endpoints: ${PUBLIC_ENDPOINTS:}
 
@@ -32,10 +47,13 @@ app:
     admin:
       password: ${SEED_ADMIN_PASSWORD:}
       email: ${SEED_ADMIN_EMAIL:}
-      full-name: ${SEED_ADMIN_FULL_NAME:}
-      phone-number: ${SEED_ADMIN_PHONE_NUMBER:}
-      address: ${SEED_ADMIN_ADDRESS:}
-      dob: ${SEED_ADMIN_DOB:}
+
+  mail:
+    from: ${MAIL_FROM:}
+    from-name: ${MAIL_FROM_NAME:}
+
+  invite:
+    base-url: ${INVITE_BASE_URL:http://localhost:3000}
 
 server:
   port: ${SERVER_PORT:8080}

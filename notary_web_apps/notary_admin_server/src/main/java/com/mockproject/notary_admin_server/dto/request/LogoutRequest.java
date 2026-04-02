@@ -1,9 +1,6 @@
-package com.mockproject.notary_admin_server.dto.response;
+package com.mockproject.notary_admin_server.dto.request;
 
-import java.util.UUID;
-
-import com.mockproject.notary_common.constant.PredefinedRole;
-
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +12,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class RoleResponse {
-    UUID id;
-    PredefinedRole roleName;
+public class LogoutRequest {
+
+    @NotBlank(message = "Refresh token không được để trống")
+    String refreshToken;
 }

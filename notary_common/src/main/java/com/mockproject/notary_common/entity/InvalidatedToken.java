@@ -9,6 +9,16 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 
+/**
+ * Language
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 31-03-2026      VanTien     create
+ */
 @Entity
 @Table(name = "invalidated_tokens")
 @Setter

@@ -1,22 +1,32 @@
 package com.mockproject.notary_admin_server.service.impl;
 
-import com.mockproject.notary_admin_server.dto.request.AuthenticationRequest;
+import com.mockproject.notary_admin_server.exception.errorCode.JwtErrorCode;
+import com.mockproject.notary_admin_server.exception.errorCode.TokenErrorCode;
+import com.mockproject.notary_admin_server.repository.UserInvitationTokenRepository;
+import com.mockproject.notary_common.constant.UserStatus;
+import com.mockproject.notary_common.entity.UserInvitationToken;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.mockproject.notary_admin_server.dto.request.*;
 import com.mockproject.notary_admin_server.dto.response.AuthenticationResponse;
 import com.mockproject.notary_admin_server.exception.AppException;
 import com.mockproject.notary_admin_server.exception.errorCode.PasswordErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.UserErrorCode;
-import com.mockproject.notary_admin_server.mapper.RoleMapper;
-import com.mockproject.notary_admin_server.mapper.UserMapper;
 import com.mockproject.notary_admin_server.repository.UserRepository;
 import com.mockproject.notary_admin_server.service.AuthenticationService;
 import com.mockproject.notary_admin_server.service.JwtService;
 import com.mockproject.notary_common.entity.User;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -25,21 +35,21 @@ import org.springframework.stereotype.Service;
 public class AuthenticationServiceImpl implements AuthenticationService {
     PasswordEncoder passwordEncoder;
 
-    UserMapper userMapper;
-
-    RoleMapper roleMapper;
-
     UserRepository userRepository;
 
     JwtService jwtService;
 
+    UserInvitationTokenRepository invitationTokenRepository;
+
     @Override
     public AuthenticationResponse login(AuthenticationRequest request) {
-        User user =userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new AppException(UserErrorCode.USER_NOT_FOUND));
+        User user = userRepository
+                .findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
 
         boolean isAuthenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
 
-        if(!isAuthenticated) {
+        if (!isAuthenticated) {
             throw new AppException(PasswordErrorCode.PASSWORD_INCORRECT);
         }
 
@@ -56,6 +66,88 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .refreshToken(refreshToken)
                 .authenticated(true)
                 .build();
+    }
+
+    @Override
+    public AuthenticationResponse refreshToken(String refreshToken) {
+        SignedJWT signedJWT = jwtService.verifyRefreshToken(refreshToken);
+
+        try{
+            JWTClaimsSet jwtClaimsSet = signedJWT.getJWTClaimsSet();
+
+            String email = jwtClaimsSet.getSubject();
+
+            User user = userRepository
+                    .findByEmail(email)
+                    .orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
+
+            if(user.getStatus() != UserStatus.ACTIVE) {
+                throw new AppException(UserErrorCode.USER_STATUS_INVALID);
+            }
+
+            String familyId = jwtService.getTokenFamilyId(refreshToken);
+
+            jwtService.revokeRefreshToken(refreshToken);
+
+            String newAccessToken = jwtService.createAccessToken(user);
+
+            String newRefreshToken = jwtService.createRefreshToken(user, familyId);
+
+            log.info("Refresh token successfully for user: email={}", email);
+
+            return AuthenticationResponse.builder()
+                    .token(newAccessToken)
+                    .refreshToken(newRefreshToken)
+                    .authenticated(true)
+                    .build();
+        } catch (Exception e) {
+            log.error("Error refreshing token: {}", e.getMessage());
+            throw new AppException(JwtErrorCode.REFRESH_TOKEN_INVALID);
+        }
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        jwtService.revokeRefreshToken(refreshToken);
+        log.info("Refresh token revoked successfully");
+    }
+
+    @Override
+    public void logoutAll() {
+
+    }
+
+//    @Override
+//    public void verifyUser(VerifyUserRequest request) {}
+//
+//    @Override
+//    public void forgotPassword(ForgotPasswordRequest request) {}
+//
+//    @Override
+//    public void resetPassword(ResetPasswordRequest request) {}
+
+    @Override
+    @Transactional
+    public void setPassword(SetPasswordRequest request) {
+        UserInvitationToken invitationToken = invitationTokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new AppException(TokenErrorCode.TOKEN_INVALID));
+
+        if (Boolean.TRUE.equals(invitationToken.getUsed())) {
+            throw new AppException(TokenErrorCode.TOKEN_ALREADY_USED);
+        }
+
+        if (invitationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new AppException(TokenErrorCode.TOKEN_EXPIRED);
+        }
+
+        User user = invitationToken.getUser();
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setStatus(UserStatus.ACTIVE);
+
+        userRepository.save(user);
+
+        invitationToken.setUsed(true);
+        invitationTokenRepository.save(invitationToken);
     }
 
     private void validateUserStatusForLogin(User user) {

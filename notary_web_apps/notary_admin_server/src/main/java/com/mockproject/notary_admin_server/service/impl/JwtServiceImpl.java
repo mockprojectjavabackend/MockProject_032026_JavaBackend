@@ -1,10 +1,21 @@
 package com.mockproject.notary_admin_server.service.impl;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.mockproject.notary_admin_server.exception.AppException;
 import com.mockproject.notary_admin_server.exception.errorCode.AuthErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.JwtErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.UserErrorCode;
-import com.mockproject.notary_admin_server.repository.InvalidatedTokenRepository;
 import com.mockproject.notary_admin_server.repository.RefreshTokenRepository;
 import com.mockproject.notary_admin_server.repository.UserRepository;
 import com.mockproject.notary_admin_server.service.JwtService;
@@ -23,20 +34,10 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -68,8 +69,6 @@ public class JwtServiceImpl implements JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    private final InvalidatedTokenRepository invalidatedTokenRepository;
-
     @Override
     public String createAccessToken(User user) {
         validateUser(user);
@@ -87,7 +86,7 @@ public class JwtServiceImpl implements JwtService {
 
         String token = createToken(user, TokenType.REFRESH, refreshableDuration, tokenFamilyId);
 
-        try{
+        try {
             SignedJWT signedJWT = SignedJWT.parse(token);
 
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
@@ -104,8 +103,9 @@ public class JwtServiceImpl implements JwtService {
 
             refreshTokenRepository.save(refreshToken);
             log.debug("Successfully created refresh token for user with email: {}", user.getEmail());
-        } catch (ParseException e){
-            log.error("Error parsing refresh token for user with email: {}, error: {}", user.getEmail(), e.getMessage());
+        } catch (ParseException e) {
+            log.error(
+                    "Error parsing refresh token for user with email: {}, error: {}", user.getEmail(), e.getMessage());
             throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
         }
 
@@ -121,44 +121,47 @@ public class JwtServiceImpl implements JwtService {
     public SignedJWT verifyRefreshToken(String refreshToken) {
         SignedJWT signedJWT = verifyToken(refreshToken, TokenType.REFRESH);
 
-        try{
+        try {
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
 
             String jti = claimsSet.getJWTID();
 
             Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByJti(jti);
 
-            if(optionalRefreshToken.isEmpty()) {
+            if (optionalRefreshToken.isEmpty()) {
                 log.warn("Refresh token not found in database for jti: {}", jti);
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
             RefreshToken storedRefreshToken = optionalRefreshToken.get();
 
-            if(storedRefreshToken.isRevoked()) {
+            if (storedRefreshToken.isRevoked()) {
                 String familyId = storedRefreshToken.getFamilyId();
 
-                log.warn("Refresh token is revoked for jti: {}, revoking all tokens in the same family with familyId: {}", jti, familyId);
+                log.warn(
+                        "Refresh token is revoked for jti: {}, revoking all tokens in the same family with familyId: {}",
+                        jti,
+                        familyId);
 
                 int revokedCount = refreshTokenRepository.revokeAllByFamilyId(
-                        familyId,
-                        Instant.now(),
-                        RevocationReason.SECURITY_BREACH
-                );
+                        familyId, Instant.now(), RevocationReason.SECURITY_BREACH);
 
-                log.warn("Revoked {} refresh tokens in the same family with familyId: {} due to security breach", revokedCount, familyId);
+                log.warn(
+                        "Revoked {} refresh tokens in the same family with familyId: {} due to security breach",
+                        revokedCount,
+                        familyId);
 
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
-            if(!optionalRefreshToken.get().isValid()){
+            if (!optionalRefreshToken.get().isValid()) {
                 log.warn("Refresh token is invalid for jti: {}", jti);
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
             return signedJWT;
 
-        } catch (ParseException e){
+        } catch (ParseException e) {
             log.error("Error parsing refresh token during verification, error: {}", e.getMessage());
             throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
         }
@@ -200,26 +203,21 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public void revokeAllTokensOfUser(UUID userId) {
-        User user =
-                userRepository.findById(userId).orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
 
         userRepository.save(user);
 
+        // Revoke all refresh tokens in database
 
-        //Revoke all refresh tokens in database
-
-        int revokedCount = refreshTokenRepository.revokeAllByUserId(
-                userId,
-                Instant.now(),
-                RevocationReason.USER_LOGOUT_ALL
-        );
-        log.info("Incremented token version for user {}", user.getEmail());
+        log.info("Revoked {} refresh tokens for user {}",
+                refreshTokenRepository.revokeAllByUserId(userId, Instant.now(), RevocationReason.USER_LOGOUT_ALL),
+                user.getEmail());
     }
 
     @Override
     public String getTokenFamilyId(String refreshToken) {
         SignedJWT signedJWT = verifyToken(refreshToken, TokenType.REFRESH);
-        try{
+        try {
             return signedJWT.getJWTClaimsSet().getStringClaim(FAMILY_ID_CLAIM);
         } catch (ParseException e) {
             log.error("Failed to parse refresh token claims to get family ID", e);
@@ -228,7 +226,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private String createToken(User user, TokenType tokenType, long duration, String familyId) {
-        try{
+        try {
             JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
 
             JWTClaimsSet jwtClaimsSet = buildJwtClaimsSet(user, tokenType, duration, familyId);
@@ -242,7 +240,7 @@ public class JwtServiceImpl implements JwtService {
             log.debug("Successfully created {} token for email: {}", tokenType, user.getEmail());
 
             return token;
-        } catch (JOSEException e){
+        } catch (JOSEException e) {
             log.error("Error creating {} token for email: {}, error: {}", tokenType, user.getEmail(), e.getMessage());
             throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
         }
@@ -286,7 +284,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private byte[] getSignerKeyBytes() {
-        if(signerKey == null || signerKey.isEmpty()) {
+        if (signerKey == null || signerKey.isEmpty()) {
             throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
         }
         return signerKey.getBytes(StandardCharsets.UTF_8);
@@ -332,17 +330,17 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private SignedJWT verifyToken(String token, TokenType tokenType) {
-        if(token == null || token.isBlank()) {
+        if (token == null || token.isBlank()) {
             log.warn("Token is null or blank during verification");
             throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
         }
 
-        try{
+        try {
             SignedJWT signedJWT = SignedJWT.parse(token);
 
             JWSVerifier verifier = new MACVerifier(getSignerKeyBytes());
 
-            if(!signedJWT.verify(verifier)) {
+            if (!signedJWT.verify(verifier)) {
                 log.warn("Token signature verification failed for token: {}", token);
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
@@ -362,25 +360,29 @@ public class JwtServiceImpl implements JwtService {
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
-            if(tokenType == null){
+            if (tokenType == null) {
                 log.warn("Token type is null during verification for token: {}", token);
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
             String tokenTypeInClaim = claimsSet.getStringClaim(TOKEN_TYPE_CLAIM);
-            if (tokenTypeInClaim == null || !tokenTypeInClaim.isBlank()) {
-                log.warn("Token type mismatch during verification. Expected: {}, Found: {}", tokenType.name(), tokenTypeInClaim);
+            if (tokenTypeInClaim == null || tokenTypeInClaim.isBlank()) {
+                log.warn(
+                        "Token type claim is missing or blank during verification. Expected: {}",
+                        tokenType.name());
                 throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
-            if (tokenType.name().equals(tokenTypeInClaim)) {
-                log.warn("Token type claim does not match expected token type during verification. Expected: {}, Found: {}", tokenType.name(), tokenTypeInClaim);
-                    throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
+            if (!tokenType.name().equals(tokenTypeInClaim)) {
+                log.warn(
+                        "Token type claim does not match expected token type during verification. Expected: {}, Found: {}",
+                        tokenType.name(),
+                        tokenTypeInClaim);
+                throw new AppException(AuthErrorCode.AUTHENTICATION_FAILED);
             }
 
             log.debug("Token verified successfully for token: {}", token);
             return signedJWT;
-
 
         } catch (ParseException | JOSEException e) {
             log.error("Error parsing or verifying JWT token", e);

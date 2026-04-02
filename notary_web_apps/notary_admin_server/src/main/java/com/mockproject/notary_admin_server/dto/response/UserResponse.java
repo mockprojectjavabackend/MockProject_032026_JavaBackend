@@ -1,15 +1,18 @@
 package com.mockproject.notary_admin_server.dto.response;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
+
+import com.mockproject.notary_common.constant.PredefinedRole;
 import com.mockproject.notary_common.constant.UserStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -19,11 +22,7 @@ import java.util.UUID;
 public class UserResponse {
     UUID id;
     String email;
-    String phoneNumber;
-    String fullName;
-    LocalDate dob;
-    String address;
     UserStatus status;
+    Set<PredefinedRole> roles;
     LocalDateTime createdAt;
-    LocalDateTime updatedAt;
 }

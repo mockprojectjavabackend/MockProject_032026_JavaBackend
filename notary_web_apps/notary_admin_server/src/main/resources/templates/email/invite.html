@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kích hoạt tài khoản Công chứng viên</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:40px 0;">
+    <tr>
+        <td align="center">
+
+            <!-- Card -->
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background-color:#ffffff;border-radius:12px;overflow:hidden;
+                          box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background:linear-gradient(135deg,#1a56db 0%,#1e3a8a 100%);
+                               padding:36px 40px;text-align:center;">
+                        <p style="margin:0 0 8px 0;font-size:13px;color:rgba(255,255,255,0.7);
+                                  text-transform:uppercase;letter-spacing:2px;font-weight:600;">
+                            Hệ thống Quản lý Công chứng
+                        </p>
+                        <h1 style="margin:0;font-size:26px;font-weight:700;color:#ffffff;line-height:1.3;">
+                            Lời mời kích hoạt tài khoản
+                        </h1>
+                    </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px 40px 32px;">
+
+                        <!-- Greeting -->
+                        <p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6;">
+                            Xin chào <strong style="color:#1a56db;">{{fullName}}</strong>,
+                        </p>
+
+                        <p style="margin:0 0 24px;font-size:15px;color:#4b5563;line-height:1.7;">
+                            Bạn đã được thêm vào hệ thống quản lý công chứng với tư cách
+                            <strong>Công chứng viên</strong>. Vui lòng nhấn vào nút bên dưới để
+                            thiết lập mật khẩu và kích hoạt tài khoản của bạn.
+                        </p>
+
+                        <!-- CTA Button -->
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding:8px 0 32px;">
+                                    <a href="{{inviteLink}}"
+                                       style="display:inline-block;background:linear-gradient(135deg,#1a56db,#1e40af);
+                                              color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;
+                                              padding:16px 48px;border-radius:8px;
+                                              box-shadow:0 4px 14px rgba(26,86,219,0.4);
+                                              letter-spacing:0.3px;">
+                                        ✉&nbsp; Thiết lập mật khẩu ngay
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Divider -->
+                        <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 24px;" />
+
+                        <!-- Info box -->
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="background:#f0f4ff;border-left:4px solid #1a56db;
+                                           border-radius:6px;padding:16px 20px;">
+                                    <p style="margin:0 0 6px;font-size:13px;font-weight:700;
+                                              color:#1e40af;text-transform:uppercase;letter-spacing:0.8px;">
+                                        ⚠ Lưu ý bảo mật
+                                    </p>
+                                    <ul style="margin:0;padding-left:18px;font-size:13px;color:#374151;line-height:1.8;">
+                                        <li>Liên kết này có hiệu lực trong <strong>{{expiryHours}} giờ</strong>.</li>
+                                        <li>Chỉ sử dụng được <strong>một lần duy nhất</strong>.</li>
+                                        <li>Nếu bạn không yêu cầu điều này, hãy <strong>bỏ qua</strong> email này và liên hệ quản trị viên.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fallback link -->
+                        <p style="margin:24px 0 0;font-size:12px;color:#9ca3af;line-height:1.6;word-break:break-all;">
+                            Nếu nút không hoạt động, sao chép và dán liên kết sau vào trình duyệt:<br/>
+                            <a href="{{inviteLink}}" style="color:#1a56db;text-decoration:none;font-size:11px;">
+                                {{inviteLink}}
+                            </a>
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background:#f9fafb;border-top:1px solid #e5e7eb;
+                               padding:24px 40px;text-align:center;">
+                        <p style="margin:0 0 4px;font-size:12px;color:#6b7280;">
+                            Email này được gửi tự động từ hệ thống. Vui lòng không trả lời.
+                        </p>
+                        <p style="margin:0;font-size:12px;color:#9ca3af;">
+                            &copy; 2026 Hệ thống Quản lý Công chứng. Bảo lưu mọi quyền.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            <!-- /Card -->
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

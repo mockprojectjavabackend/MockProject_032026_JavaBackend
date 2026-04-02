@@ -1,9 +1,9 @@
 package com.mockproject.notary_admin_server.service;
 
+import java.util.UUID;
+
 import com.mockproject.notary_common.entity.User;
 import com.nimbusds.jwt.SignedJWT;
-
-import java.util.UUID;
 
 public interface JwtService {
     String createAccessToken(User user);

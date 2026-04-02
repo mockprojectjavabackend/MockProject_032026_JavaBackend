@@ -1,22 +1,36 @@
 package com.mockproject.notary_admin_server.configuration;
 
-import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
-import com.mockproject.notary_admin_server.exception.ErrorCode;
-import com.mockproject.notary_admin_server.exception.errorCode.AuthErrorCode;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+
+import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
+import com.mockproject.notary_admin_server.exception.ErrorCode;
+import com.mockproject.notary_admin_server.exception.errorCode.AuthErrorCode;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+/**
+ * JwtAuthenticationEntryPoint
+ *
+ * @version 1.0
+ *
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 27-03-2026      VanTien     create
+ */
 
 @Slf4j
 @Component
@@ -43,12 +57,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         ApiErrorResponse apiResponse = ApiErrorResponse.builder()
                 .status(errorCode.getHttpStatus().value())
                 .path(request.getRequestURI())
-                .errors(
-                        java.util.Map.of(
-                                errorCode.getCode(),
-                                errorCode.getMessage()
-                        )
-                )
+                .errors(java.util.Map.of(errorCode.getCode(), errorCode.getMessage()))
                 .timestamp(java.time.Instant.now().toString())
                 .build();
         log.warn(
