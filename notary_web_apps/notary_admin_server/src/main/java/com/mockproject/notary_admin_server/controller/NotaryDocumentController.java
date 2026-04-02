@@ -1,13 +1,10 @@
 package com.mockproject.notary_admin_server.controller;
 
-import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
-import com.mockproject.notary_admin_server.dto.request.DocumentRequestDTO;
-import com.mockproject.notary_admin_server.dto.response.DocumentDeleteResponseDTO;
-import com.mockproject.notary_admin_server.dto.response.DocumentResponseDTO;
-import com.mockproject.notary_admin_server.dto.response.DocumentUploadResponseDTO;
-import com.mockproject.notary_admin_server.dto.response.PagedDocumentResponseDTO;
-import com.mockproject.notary_admin_server.service.NotaryDocumentService;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +18,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
+import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
+import com.mockproject.notary_admin_server.dto.request.DocumentRequestDTO;
+import com.mockproject.notary_admin_server.dto.response.DocumentDeleteResponseDTO;
+import com.mockproject.notary_admin_server.dto.response.DocumentResponseDTO;
+import com.mockproject.notary_admin_server.dto.response.DocumentUploadResponseDTO;
+import com.mockproject.notary_admin_server.dto.response.PagedDocumentResponseDTO;
+import com.mockproject.notary_admin_server.service.NotaryDocumentService;
+
+
+
 
 /**
  * NotaryDocumentController
@@ -78,7 +84,8 @@ public class NotaryDocumentController {
     @PostMapping
     public ResponseEntity<ApiSuccessResponse<DocumentResponseDTO>> createDocument(
             @PathVariable UUID id,
-            @RequestBody DocumentRequestDTO dto
+            // @Valid triggers Bean Validation on fields of DocumentRequestDTO before the method runs
+            @Valid @RequestBody DocumentRequestDTO dto
     ) {
         DocumentResponseDTO result = notaryDocumentService.createDocument(id, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.created(result));
@@ -103,7 +110,8 @@ public class NotaryDocumentController {
     public ResponseEntity<ApiSuccessResponse<DocumentResponseDTO>> updateDocument(
             @PathVariable UUID id,
             @PathVariable UUID doc_id,
-            @RequestBody DocumentRequestDTO dto
+            // @Valid triggers Bean Validation on fields of DocumentRequestDTO before the method runs
+            @Valid @RequestBody DocumentRequestDTO dto
     ) {
         DocumentResponseDTO result = notaryDocumentService.updateDocument(id, doc_id, dto);
         return ResponseEntity.ok(ApiSuccessResponse.ok(result));

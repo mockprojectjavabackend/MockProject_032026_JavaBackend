@@ -1,15 +1,16 @@
 package com.mockproject.notary_admin_server.mapper;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import org.springframework.stereotype.Component;
+
 import com.mockproject.notary_common.constant.DocCategory;
 import com.mockproject.notary_common.constant.VerifiedStatus;
 import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryDocument;
 import com.mockproject.notary_admin_server.dto.request.DocumentRequestDTO;
 import com.mockproject.notary_admin_server.dto.response.DocumentResponseDTO;
-import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * NotaryDocumentMapper
@@ -27,12 +28,8 @@ public class NotaryDocumentMapper {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String DATE_TIME_SUFFIX = "T00:00:00";
 
-    /**
-     * Map a NotaryDocument entity to DocumentResponseDTO.
-     *
-     * @param document the source entity
-     * @return populated DocumentResponseDTO
-     */
+    //Map a NotaryDocument entity to DocumentResponseDTO.
+
     public DocumentResponseDTO toResponseDTO(NotaryDocument document) {
         return DocumentResponseDTO.builder()
                 .id(document.getId().toString())
@@ -47,13 +44,7 @@ public class NotaryDocumentMapper {
                 .build();
     }
 
-    /**
-     * Map a DocumentRequestDTO and an owning Notary to a new NotaryDocument entity.
-     *
-     * @param dto    the request body
-     * @param notary the owning notary entity
-     * @return new NotaryDocument entity (not yet persisted)
-     */
+    //Map a DocumentRequestDTO and an owning Notary to a new NotaryDocument entity.
     public NotaryDocument toEntity(DocumentRequestDTO dto, Notary notary) {
         //parse DocCategory from string, default to null if unrecognised
         DocCategory docCategory = resolveDocCategory(dto.getDocCategory());
@@ -99,12 +90,8 @@ public class NotaryDocumentMapper {
                 .build();
     }
 
-    /**
-     * Update an existing NotaryDocument entity in-place from a DocumentRequestDTO.
-     *
-     * @param document the entity to update
-     * @param dto      the new data
-     */
+    // Update an existing NotaryDocument entity in-place from a DocumentRequestDTO.
+
     public void updateEntity(NotaryDocument document, DocumentRequestDTO dto) {
         if (dto.getDocCategory() != null) {
             DocCategory mappedCat = resolveDocCategory(dto.getDocCategory());
@@ -146,12 +133,7 @@ public class NotaryDocumentMapper {
 
     /* ==================== private helpers ==================== */
 
-    /**
-     * Resolve a document category string to its enum value.
-     *
-     * @param categoryStr raw category string from the request
-     * @return the matched DocCategory, or null if unrecognised/null
-     */
+    //Resolve a document category string to its enum value.
     private DocCategory resolveDocCategory(String categoryStr) {
         if (categoryStr == null) {
             return null;
@@ -166,12 +148,7 @@ public class NotaryDocumentMapper {
         };
     }
 
-    /**
-     * Parse an upload date string (yyyy-MM-dd), defaulting to now on null/blank/invalid input.
-     *
-     * @param dateStr the date string to parse
-     * @return parsed LocalDateTime, or LocalDateTime.now() as fallback
-     */
+    //Parse an upload date string (yyyy-MM-dd), defaulting to now on null/blank/invalid input.
     private LocalDateTime parseUploadDate(String dateStr) {
         if (dateStr == null || dateStr.isBlank()) {
             return LocalDateTime.now();

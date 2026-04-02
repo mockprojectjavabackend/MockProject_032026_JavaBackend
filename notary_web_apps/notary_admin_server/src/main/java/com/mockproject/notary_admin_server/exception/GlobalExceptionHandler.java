@@ -1,13 +1,18 @@
 package com.mockproject.notary_admin_server.exception;
 
-import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
+import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
+
 
 @RestControllerAdvice
 @Slf4j
@@ -41,6 +46,33 @@ public class GlobalExceptionHandler {
                         request.getRequestURI(),
                         errors
                 ));
+    }
+
+    /**
+     * Handle Bean Validation failures triggered by @Valid on @RequestBody parameters.
+     * Collects all field-level constraint violations into a map of { fieldName -> message }
+     * and returns a structured 400 Bad Request response.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Validation failed for request [{}]: {} error(s)",
+                request.getRequestURI(), ex.getBindingResult().getErrorCount());
+
+        //collect each field error into { fieldName -> defaultMessage }
+        Map<String, String> errors = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
+                        //if multiple violations exist for the same field, keep the first message
+                        (existing, replacement) -> existing
+                ));
+
+        return ResponseEntity.badRequest()
+                .body(ApiErrorResponse.of(400, request.getRequestURI(), errors));
     }
 
     private ResponseEntity<ApiErrorResponse> build(

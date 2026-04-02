@@ -1,5 +1,22 @@
 package com.mockproject.notary_admin_server.service.impl;
 
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.mockproject.notary_admin_server.dto.request.DocumentRequestDTO;
 import com.mockproject.notary_admin_server.dto.response.DocumentDeleteResponseDTO;
 import com.mockproject.notary_admin_server.dto.response.DocumentResponseDTO;
@@ -18,21 +35,7 @@ import com.mockproject.notary_common.constant.DocCategory;
 import com.mockproject.notary_common.constant.VerifiedStatus;
 import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryDocument;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * NotaryDocumentServiceImpl
@@ -203,11 +206,10 @@ public class NotaryDocumentServiceImpl implements NotaryDocumentService {
 
         // apply updates in-place and save
         notaryDocumentMapper.updateEntity(document, dto);
-        NotaryDocument updated = notaryDocumentRepository.save(document);
 
         log.info("Updated document [{}] for notary [{}]", docId, notaryId);
 
-        return notaryDocumentMapper.toResponseDTO(updated);
+        return notaryDocumentMapper.toResponseDTO(document);
     }
 
     /**

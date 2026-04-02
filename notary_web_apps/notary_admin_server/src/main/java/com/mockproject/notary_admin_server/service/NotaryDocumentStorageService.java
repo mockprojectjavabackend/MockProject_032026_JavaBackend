@@ -1,26 +1,24 @@
 package com.mockproject.notary_admin_server.service;
 
-
-import com.mockproject.notary_admin_server.exception.AppException;
-import com.mockproject.notary_admin_server.exception.errorCode.DocumentErrorCode;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.mapping.Set;
-import org.springframework.beans.factory.annotation.Value;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+
+
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
+
+import com.mockproject.notary_admin_server.exception.AppException;
+import com.mockproject.notary_admin_server.exception.errorCode.DocumentErrorCode;
+
 
 
 /**
