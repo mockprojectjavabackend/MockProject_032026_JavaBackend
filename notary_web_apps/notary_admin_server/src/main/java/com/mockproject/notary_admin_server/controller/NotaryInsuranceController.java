@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mockproject.notary_admin_server.dto.ApiResponse;
+import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import com.mockproject.notary_admin_server.dto.request.CreateNotaryInsuranceRequest;
 import com.mockproject.notary_admin_server.dto.response.NotaryInsuranceResponse;
 import com.mockproject.notary_admin_server.service.NotaryInsuranceService;
@@ -36,24 +36,24 @@ public class NotaryInsuranceController {
     }
 
     @GetMapping("/{id}/insurances")
-    public ResponseEntity<ApiResponse<List<NotaryInsuranceResponse>>> getAllInsurances(@PathVariable UUID id) {
+    public ResponseEntity<ApiSuccessResponse<List<NotaryInsuranceResponse>>> getAllInsurances(@PathVariable UUID id) {
         List<NotaryInsuranceResponse> insurances = notaryInsuranceService.getAllInsurancesByNotaryId(id).stream()
                 .map(NotaryInsuranceResponse::fromEntity)
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.success(insurances));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(insurances));
     }
 
     @GetMapping("/{id}/insurance")
-    public ResponseEntity<ApiResponse<NotaryInsuranceResponse>> getInsurance(@PathVariable UUID id) {
+    public ResponseEntity<ApiSuccessResponse<NotaryInsuranceResponse>> getInsurance(@PathVariable UUID id) {
         NotaryInsurance insurance = notaryInsuranceService.getInsuranceByNotaryId(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary insurance not found"));
 
-        return ResponseEntity.ok(ApiResponse.success(NotaryInsuranceResponse.fromEntity(insurance)));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(NotaryInsuranceResponse.fromEntity(insurance)));
     }
 
     @PostMapping("/{id}/insurance")
-    public ResponseEntity<ApiResponse<NotaryInsuranceResponse>> createInsurance(@PathVariable UUID id,
+    public ResponseEntity<ApiSuccessResponse<NotaryInsuranceResponse>> createInsurance(@PathVariable UUID id,
             @Valid @RequestBody CreateNotaryInsuranceRequest request) {
         NotaryInsurance createdInsurance = notaryInsuranceService.createInsurance(
                 id,
@@ -63,11 +63,11 @@ public class NotaryInsuranceController {
                 request.expirationDate());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(NotaryInsuranceResponse.fromEntity(createdInsurance)));
+                .body(ApiSuccessResponse.created(NotaryInsuranceResponse.fromEntity(createdInsurance)));
     }
 
     @PutMapping("/{id}/insurance")
-    public ResponseEntity<ApiResponse<NotaryInsuranceResponse>> updateInsurance(@PathVariable UUID id,
+    public ResponseEntity<ApiSuccessResponse<NotaryInsuranceResponse>> updateInsurance(@PathVariable UUID id,
             @Valid @RequestBody CreateNotaryInsuranceRequest request) {
         NotaryInsurance updatedInsurance = notaryInsuranceService.updateInsurance(
                 id,
@@ -76,14 +76,14 @@ public class NotaryInsuranceController {
                 request.coverageAmount(),
                 request.expirationDate());
 
-        return ResponseEntity.ok(ApiResponse.success(NotaryInsuranceResponse.fromEntity(updatedInsurance)));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(NotaryInsuranceResponse.fromEntity(updatedInsurance)));
     }
 
     @PostMapping(value = "/{id}/insurance/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Map<String, String>>> uploadInsurance(@PathVariable UUID id,
+    public ResponseEntity<ApiSuccessResponse<Map<String, String>>> uploadInsurance(@PathVariable UUID id,
             @RequestParam("file") MultipartFile file) {
         NotaryInsurance updatedInsurance = notaryInsuranceService.uploadInsuranceFile(id, file);
 
-        return ResponseEntity.ok(ApiResponse.success(Map.of("file_url", updatedInsurance.getFileUrl())));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(Map.of("file_url", updatedInsurance.getFileUrl())));
     }
 }

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mockproject.notary_admin_server.dto.ApiResponse;
+import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import com.mockproject.notary_admin_server.dto.request.CreateNotaryBondRequest;
 import com.mockproject.notary_admin_server.dto.response.NotaryBondResponse;
 import com.mockproject.notary_admin_server.service.NotaryBondsService;
@@ -36,24 +36,24 @@ public class NotaryBondsController {
     }
 
     @GetMapping("/{id}/bonds")
-    public ResponseEntity<ApiResponse<List<NotaryBondResponse>>> getAllBonds(@PathVariable UUID id) {
+    public ResponseEntity<ApiSuccessResponse<List<NotaryBondResponse>>> getAllBonds(@PathVariable UUID id) {
         List<NotaryBondResponse> bonds = notaryBondsService.getAllBondsByNotaryId(id).stream()
                 .map(NotaryBondResponse::fromEntity)
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.success(bonds));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(bonds));
     }
 
     @GetMapping("/{id}/bond")
-    public ResponseEntity<ApiResponse<NotaryBondResponse>> getBond(@PathVariable UUID id) {
+    public ResponseEntity<ApiSuccessResponse<NotaryBondResponse>> getBond(@PathVariable UUID id) {
         NotaryBonds bond = notaryBondsService.getBondByNotaryId(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notary bond not found"));
 
-        return ResponseEntity.ok(ApiResponse.success(NotaryBondResponse.fromEntity(bond)));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(NotaryBondResponse.fromEntity(bond)));
     }
 
     @PostMapping("/{id}/bond")
-    public ResponseEntity<ApiResponse<NotaryBondResponse>> createBond(@PathVariable UUID id,
+    public ResponseEntity<ApiSuccessResponse<NotaryBondResponse>> createBond(@PathVariable UUID id,
             @Valid @RequestBody CreateNotaryBondRequest request) {
         NotaryBonds createdBond = notaryBondsService.createBond(
                 id,
@@ -64,11 +64,11 @@ public class NotaryBondsController {
                 request.fileUrl());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(NotaryBondResponse.fromEntity(createdBond)));
+                .body(ApiSuccessResponse.created(NotaryBondResponse.fromEntity(createdBond)));
     }
 
     @PutMapping("/{id}/bond")
-    public ResponseEntity<ApiResponse<NotaryBondResponse>> updateBond(@PathVariable UUID id,
+    public ResponseEntity<ApiSuccessResponse<NotaryBondResponse>> updateBond(@PathVariable UUID id,
             @Valid @RequestBody CreateNotaryBondRequest request) {
         NotaryBonds updatedBond = notaryBondsService.updateBond(
                 id,
@@ -78,15 +78,15 @@ public class NotaryBondsController {
                 request.expirationDate(),
                 request.fileUrl());
 
-        return ResponseEntity.ok(ApiResponse.success(NotaryBondResponse.fromEntity(updatedBond)));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(NotaryBondResponse.fromEntity(updatedBond)));
     }
 
     @PostMapping(value = "/{id}/bond/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Map<String, String>>> uploadBond(@PathVariable UUID id,
+    public ResponseEntity<ApiSuccessResponse<Map<String, String>>> uploadBond(@PathVariable UUID id,
             @RequestParam("file") MultipartFile file) {
         NotaryBonds updatedBond = notaryBondsService.uploadBondFile(id, file);
 
-        return ResponseEntity.ok(ApiResponse.success(Map.of("file_url", updatedBond.getFileUrl())));
+        return ResponseEntity.ok(ApiSuccessResponse.ok(Map.of("file_url", updatedBond.getFileUrl())));
     }
 
 }
