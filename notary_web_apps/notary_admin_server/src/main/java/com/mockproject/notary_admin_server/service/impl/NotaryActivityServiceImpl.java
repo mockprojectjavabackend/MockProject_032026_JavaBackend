@@ -3,6 +3,7 @@ package com.mockproject.notary_admin_server.service.impl;
 import com.mockproject.notary_admin_server.dto.response.RecentActivityResponse;
 import com.mockproject.notary_admin_server.exception.AppException;
 import com.mockproject.notary_admin_server.exception.errorCode.AuditErrorCode;
+import com.mockproject.notary_admin_server.mapper.AuditServiceHelper;
 import com.mockproject.notary_admin_server.repository.NotaryAuditLogRepository;
 import com.mockproject.notary_admin_server.repository.NotaryRepository;
 import com.mockproject.notary_admin_server.repository.UserRepository;
@@ -26,6 +27,7 @@ public class NotaryActivityServiceImpl implements NotaryActivityService {
         private final NotaryAuditLogRepository notaryAuditLogRepository;
         private final NotaryRepository notaryRepository;
         private final UserRepository userRepository;
+        private final AuditServiceHelper auditServiceHelper;
 
         /**
          * Get recent activities of a notary for Recent Audit Log block (right side)
@@ -58,8 +60,8 @@ public class NotaryActivityServiceImpl implements NotaryActivityService {
         private RecentActivityResponse mapToActivityResponse(NotaryAuditLog log) {
                 String actionType = resolveActionType(log.getTableName(), log.getAction());
                 String description = resolveDescription(actionType);
-                String performedBy = resolveAdminName(log.getChangeByUserId());
-                String timestamp = resolveTimestamp(log);
+                String performedBy = auditServiceHelper.resolveAdminName(log.getChangeByUserId());
+                String timestamp = auditServiceHelper.resolveTimestamp(log.getCreatedAt());
                 String documentName = resolveEntityName(log);
 
                 return RecentActivityResponse.builder()
@@ -113,36 +115,6 @@ public class NotaryActivityServiceImpl implements NotaryActivityService {
                         case "Commission Updated" -> "Commission information has been updated";
                         default -> "System activity recorded";
                 };
-        }
-
-        /**
-         * Resolve admin full name from user ID
-         *
-         * @param userId UUID of the user who performed the action
-         * @return full name of the admin or "Unknown" if not found
-         */
-        private String resolveAdminName(UUID userId) {
-                if (userId == null) {
-                        return "Unknown";
-                }
-                return userRepository.findById(userId)
-                                .map(user -> user.getFullName())
-                                .orElse("Unknown");
-        }
-
-        /**
-         * Resolve timestamp from audit log
-         * Falls back to "N/A" if both timestamps are null
-         *
-         * @param log audit log entity
-         * @return formatted timestamp string
-         */
-        private String resolveTimestamp(NotaryAuditLog log) {
-                if (log.getCreatedAt() != null) {
-                        return log.getCreatedAt()
-                                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                }
-                return "N/A";
         }
 
         private String resolveEntityName(NotaryAuditLog log) {
