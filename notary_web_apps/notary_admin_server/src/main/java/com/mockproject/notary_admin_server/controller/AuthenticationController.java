@@ -41,10 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationController {
     AuthenticationService authenticationService;
 
-    /**
-     * POST /auth/token
-     * Standard login with email + password. Returns access token + refresh token.
-     */
     @PostMapping(value = "token", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiSuccessResponse<AuthenticationResponse>> login(
             @Valid @RequestBody AuthenticationRequest request) {
@@ -53,11 +49,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiSuccessResponse.ok(response));
     }
 
-    /**
-     * POST /auth/set-password
-     * Called by Notary after clicking the invite link.
-     * Validates the invitation token, sets the password, activates the account.
-     */
     @PostMapping(value = "set-password", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiSuccessResponse<Void>> setPassword(@Valid @RequestBody SetPasswordRequest request) {
         log.info(
@@ -69,10 +60,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiSuccessResponse.ok(null));
     }
 
-    /**
-     * POST /auth/refresh
-     * Rotates the refresh token family: revokes old refresh token, issues new access + refresh tokens.
-     */
     @PostMapping(value = "refresh", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiSuccessResponse<AuthenticationResponse>> refreshToken(
             @Valid @RequestBody RefreshTokenRequest request) {
@@ -81,10 +68,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiSuccessResponse.ok(response));
     }
 
-    /**
-     * POST /auth/logout
-     * Revokes the given refresh token, effectively logging out this session.
-     */
     @PostMapping(value = "logout", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiSuccessResponse<Void>> logout(@Valid @RequestBody LogoutRequest request) {
         log.info("Logout request received");

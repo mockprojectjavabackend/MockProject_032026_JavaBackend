@@ -18,6 +18,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * AdminUserController
+ *
+ * @version 1.0
+ *
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 03-04-2026      VanTien     create
+ */
 @RestController
 @Slf4j(topic = "ADMIN-USER-CONTROLLER")
 @RequiredArgsConstructor
