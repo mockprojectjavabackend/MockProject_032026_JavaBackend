@@ -41,15 +41,15 @@ public class AdminUserServiceImpl implements AdminUserService {
     public UserResponse createUser(AdminCreateUserRequest request) {
         String email = request.getEmail().toLowerCase();
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new AppException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         validateRole(request.getRole());
 
         User user = userMapper.toUser(request);
+        user.setEmail(email);
 
-        // Set auth
         user.setStatus(UserStatus.INACTIVE);
 
         Role role = roleRepository

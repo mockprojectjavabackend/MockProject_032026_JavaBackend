@@ -1,6 +1,7 @@
 package com.mockproject.notary_admin_server.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j(topic = "AUTHENTICATION-SERVICE")
 public class AuthenticationServiceImpl implements AuthenticationService {
+
     PasswordEncoder passwordEncoder;
 
     UserRepository userRepository;
@@ -42,10 +44,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     UserInvitationTokenRepository invitationTokenRepository;
 
     @Override
+    @Transactional
     public AuthenticationResponse login(AuthenticationRequest request) {
         User user = userRepository
                 .findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
+
 
         boolean isAuthenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
 
@@ -69,6 +73,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    @Transactional
     public AuthenticationResponse refreshToken(String refreshToken) {
         SignedJWT signedJWT = jwtService.verifyRefreshToken(refreshToken);
 
@@ -106,22 +111,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void logout(String refreshToken) {
+    @Transactional
+    public void logout(String refreshToken, String accessToken) {
+        jwtService.verifyRefreshToken(refreshToken);
         jwtService.revokeRefreshToken(refreshToken);
+
+        if (accessToken != null && !accessToken.isBlank()) {
+            jwtService.invalidateAccessToken(accessToken);
+        }
+
         log.info("Refresh token revoked successfully");
     }
 
     @Override
-    public void logoutAll() {}
-
-    //    @Override
-    //    public void verifyUser(VerifyUserRequest request) {}
-    //
-    //    @Override
-    //    public void forgotPassword(ForgotPasswordRequest request) {}
-    //
-    //    @Override
-    //    public void resetPassword(ResetPasswordRequest request) {}
+    @Transactional
+    public void logoutAll(UUID userId) {
+        jwtService.revokeAllTokensOfUser(userId);
+        log.info("All tokens revoked for user: {}", userId);
+    }
 
     @Override
     @Transactional
@@ -174,3 +181,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 }
+

@@ -1,9 +1,14 @@
 package com.mockproject.notary_admin_server.controller;
 
+import java.util.UUID;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,13 +30,14 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * AuthenticationController
  *
- * @version 1.1
+ * @version 1.0
  *
  * Modification Logs:
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 01-04-2026      VanTien     create
- * 03-04-2026      VanTien     add set-password, refresh, logout endpoints
+ * 03-04-2026      VanTien     edit
+ * 04-04-2026      VanTien     edit
  */
 @RestController
 @Slf4j(topic = "AUTHENTICATION-CONTROLLER")
@@ -69,9 +75,30 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "logout", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApiSuccessResponse<Void>> logout(@Valid @RequestBody LogoutRequest request) {
+    public ResponseEntity<ApiSuccessResponse<Void>> logout(
+            @Valid @RequestBody LogoutRequest request, HttpServletRequest httpRequest) {
         log.info("Logout request received");
-        authenticationService.logout(request.getRefreshToken());
+
+        String accessToken = extractBearerToken(httpRequest);
+
+        authenticationService.logout(request.getRefreshToken(), accessToken);
         return ResponseEntity.ok(ApiSuccessResponse.ok(null));
     }
+
+    @PostMapping("logout-all")
+    public ResponseEntity<ApiSuccessResponse<Void>> logoutAll(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Logout-all request received");
+        UUID userId = UUID.fromString(jwt.getClaimAsString("user_id"));
+        authenticationService.logoutAll(userId);
+        return ResponseEntity.ok(ApiSuccessResponse.ok(null));
+    }
+
+    private String extractBearerToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
 }
+

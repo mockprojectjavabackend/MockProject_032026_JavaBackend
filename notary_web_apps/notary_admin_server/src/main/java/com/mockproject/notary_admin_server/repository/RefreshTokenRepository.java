@@ -22,7 +22,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Stri
 
     @Query("SELECT t FROM RefreshToken t WHERE t.user.id = :userId "
             + "AND t.revoked = false AND t.expiresAt > :now ORDER BY t.issuedAt DESC")
-    List<RefreshToken> findActiveTokensByUserId(@Param("userId") String userId, @Param("now") Instant now);
+    List<RefreshToken> findActiveTokensByUserId(@Param("userId") UUID userId, @Param("now") Instant now);
 
     List<RefreshToken> findByFamilyId(String familyId);
 

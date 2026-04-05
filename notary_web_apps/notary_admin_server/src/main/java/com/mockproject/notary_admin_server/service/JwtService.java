@@ -10,8 +10,6 @@ public interface JwtService {
 
     String createRefreshToken(User user, String familyId);
 
-    SignedJWT verifyAccessToken(String token);
-
     SignedJWT verifyRefreshToken(String refreshToken);
 
     void revokeRefreshToken(String refreshToken);
@@ -19,4 +17,7 @@ public interface JwtService {
     void revokeAllTokensOfUser(UUID userId);
 
     String getTokenFamilyId(String refreshToken);
+
+    void invalidateAccessToken(String accessToken);
 }
+

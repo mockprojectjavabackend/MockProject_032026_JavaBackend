@@ -10,12 +10,14 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.mockproject.notary_admin_server.exception.AppException;
 import com.mockproject.notary_admin_server.exception.errorCode.AuthErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.JwtErrorCode;
 import com.mockproject.notary_admin_server.exception.errorCode.UserErrorCode;
+import com.mockproject.notary_admin_server.repository.InvalidatedTokenRepository;
 import com.mockproject.notary_admin_server.repository.RefreshTokenRepository;
 import com.mockproject.notary_admin_server.repository.UserRepository;
 import com.mockproject.notary_admin_server.service.JwtService;
@@ -23,6 +25,7 @@ import com.mockproject.notary_common.constant.PredefinedRole;
 import com.mockproject.notary_common.constant.RevocationReason;
 import com.mockproject.notary_common.constant.TokenType;
 import com.mockproject.notary_common.constant.UserStatus;
+import com.mockproject.notary_common.entity.InvalidatedToken;
 import com.mockproject.notary_common.entity.RefreshToken;
 import com.mockproject.notary_common.entity.Role;
 import com.mockproject.notary_common.entity.User;
@@ -69,6 +72,8 @@ public class JwtServiceImpl implements JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
+
     @Override
     public String createAccessToken(User user) {
         validateUser(user);
@@ -110,11 +115,6 @@ public class JwtServiceImpl implements JwtService {
         }
 
         return token;
-    }
-
-    @Override
-    public SignedJWT verifyAccessToken(String token) {
-        return verifyToken(token, TokenType.ACCESS);
     }
 
     @Override
@@ -202,17 +202,39 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    @Transactional
     public void revokeAllTokensOfUser(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
 
-        userRepository.save(user);
+        int revokedCount = refreshTokenRepository.revokeAllByUserId(userId, Instant.now(), RevocationReason.USER_LOGOUT_ALL);
+        log.info("Revoked {} refresh tokens for user {}", revokedCount, user.getEmail());
+    }
 
-        // Revoke all refresh tokens in database
+    @Override
+    public void invalidateAccessToken(String accessToken) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessToken);
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
 
-        log.info(
-                "Revoked {} refresh tokens for user {}",
-                refreshTokenRepository.revokeAllByUserId(userId, Instant.now(), RevocationReason.USER_LOGOUT_ALL),
-                user.getEmail());
+            String jti = claimsSet.getJWTID();
+            Instant expiryTime = claimsSet.getExpirationTime().toInstant();
+
+            if (jti == null) {
+                log.warn("Access token missing jti, cannot invalidate");
+                return;
+            }
+
+            if (!invalidatedTokenRepository.existsById(jti)) {
+                InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                        .id(jti)
+                        .expiryTime(expiryTime)
+                        .build();
+                invalidatedTokenRepository.save(invalidatedToken);
+                log.info("Access token invalidated successfully, jti: {}", jti);
+            }
+        } catch (ParseException e) {
+            log.error("Failed to parse access token for invalidation", e);
+        }
     }
 
     @Override

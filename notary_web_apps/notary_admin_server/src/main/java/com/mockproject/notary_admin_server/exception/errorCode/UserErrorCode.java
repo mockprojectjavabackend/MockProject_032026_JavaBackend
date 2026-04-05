@@ -18,7 +18,8 @@ public enum UserErrorCode implements ErrorCode {
     USER_ACCOUNT_SUSPENDED("E3201", "Tài khoản đã bị tạm ngưng.", HttpStatus.FORBIDDEN),
     USER_ACCOUNT_BLOCKED("E3202", "Tài khoản đã bị khóa.", HttpStatus.FORBIDDEN),
     USER_ACCOUNT_DELETED("E3203", "Tài khoản không còn khả dụng.", HttpStatus.FORBIDDEN),
-    USER_STATUS_INVALID("E3204", "Trạng thái tài khoản không hợp lệ.", HttpStatus.INTERNAL_SERVER_ERROR);
+    USER_STATUS_INVALID("E3204", "Trạng thái tài khoản không hợp lệ.", HttpStatus.INTERNAL_SERVER_ERROR),
+    USER_ACCOUNT_LOCKED("E3205", "Tài khoản đã bị khóa tạm thời do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau.", HttpStatus.LOCKED);
 
     private final String code;
     private final String message;
