@@ -33,4 +33,8 @@ public class BadRequestException extends AppException {
     public static BadRequestException invalidFile() {
         return new BadRequestException(BadRequestErrorCode.INVALID_FILE);
     }
+
+    public static BadRequestException fileTooLarge() {
+        return new BadRequestException(BadRequestErrorCode.FILE_TOO_LARGE);
+    }
 }

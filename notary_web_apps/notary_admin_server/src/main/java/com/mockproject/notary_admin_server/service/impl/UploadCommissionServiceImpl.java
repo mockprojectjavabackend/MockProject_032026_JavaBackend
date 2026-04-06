@@ -9,12 +9,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.mockproject.notary_admin_server.exception.BadRequestException;
 import com.mockproject.notary_admin_server.service.UploadCommissionService;
+import com.mockproject.notary_admin_server.service.UploadFileService;
 
 /**
  * UploadCommissionServiceImpl
@@ -29,21 +38,14 @@ import com.mockproject.notary_admin_server.service.UploadCommissionService;
  */
 @Service
 public class UploadCommissionServiceImpl implements UploadCommissionService {
-    @Value("${thuong.upload-file.base-uri}")
-    private String baseURI;
+    private final UploadFileService uploadFileService;
 
-    public String store(MultipartFile file) throws IOException {
+    public UploadCommissionServiceImpl(UploadFileService uploadFileService) {
+        this.uploadFileService = uploadFileService;
+    }
 
-        Path basePath = Paths.get(baseURI);
-        Files.createDirectories(basePath);
-
-        String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-        Path filePath = basePath.resolve(fileName);
-
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        return fileName;
+    @Override
+    public String uploadCommission(MultipartFile file) throws IOException {
+        return uploadFileService.uploadFile(file, "commissions");
     }
 }

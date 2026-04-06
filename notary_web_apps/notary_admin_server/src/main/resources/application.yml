@@ -21,14 +21,13 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
-  web:
-    resources:
-      static-locations: file:///D:/Thuong/MockProject/upload/
+
 server:
   port: 8080
   servlet:
     context-path: "/server"
 
-thuong:
-  upload-file:
-    base-uri: D:/Thuong/MockProject/upload/
+cloudinary:
+  cloud-name: dy7ovxa6z
+  api-key: 883846163598763
+  api-secret: i2xyh--p7wgdqIJhOJW33DjYJNw

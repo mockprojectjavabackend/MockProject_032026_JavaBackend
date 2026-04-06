@@ -45,29 +45,8 @@ public class UploadCommissionController {
     public ResponseEntity<ApiSuccessResponse<UploadFileResponse>> upload(
             @RequestParam MultipartFile file) throws IOException {
 
-        if (file == null || file.isEmpty()) {
-            throw BadRequestException.file();
-        }
-
-        String fileName = file.getOriginalFilename();
-        String ext = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-
-        List<String> allowed = List.of("pdf", "jpg", "jpeg", "png", "doc", "docx");
-
-        if (!allowed.contains(ext)) {
-            throw BadRequestException.invalidFile();
-        }
-
-        String storedFileName = uploadService.store(file);
-
-        String fileUrl = ServletUriComponentsBuilder
-                .fromCurrentContextPath()
-                .path("/files/")
-                .path(storedFileName)
-                .toUriString();
-
-        UploadFileResponse res = new UploadFileResponse(fileUrl, Instant.now());
-
+        String url = uploadService.uploadCommission(file);
+        UploadFileResponse res = new UploadFileResponse(url, Instant.now());
         return ResponseEntity.ok(ApiSuccessResponse.ok(res));
     }
 }

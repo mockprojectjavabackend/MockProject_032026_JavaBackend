@@ -6,5 +6,6 @@ import java.net.URISyntaxException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UploadCommissionService {
-    String store(MultipartFile file) throws IOException;
+    String uploadCommission(MultipartFile file) throws IOException;
+
 }
