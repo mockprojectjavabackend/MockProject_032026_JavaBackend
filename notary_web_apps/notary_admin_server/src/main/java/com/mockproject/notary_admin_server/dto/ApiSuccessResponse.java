@@ -1,12 +1,11 @@
 package com.mockproject.notary_admin_server.dto;
 
-import java.time.Instant;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 
 @Getter
 @Setter

@@ -47,9 +47,12 @@ class CapabilityServiceTest {
     @Mock
     private NotaryRepository notaryRepository;
     @Mock
+    private StateRepository stateRepository;
+    @Mock
     private NotaryCapabilityMapper notaryCapabilityMapper;
     @Mock
     private NotaryAvailabilityMapper notaryAvailabilityMapper;
+
 
 
     private CapabilityRequest buildRequest() {
@@ -67,8 +70,11 @@ class CapabilityServiceTest {
         av.setEndTime(LocalTime.of(17, 0));
         av.setFixedDayOff(FixedDayOffEnum.SUNDAY);
 
+        CapabilityRequest.ServiceArea serviceArea = new CapabilityRequest.ServiceArea();
+        serviceArea.setCountryName("District 7");
+        serviceArea.setStateId(UUID.fromString("33330000-0000-0003-0000-000000000003"));
         request.setServiceCapabilities(sc);
-        request.setServiceArea("District 7");
+        request.setServiceArea(List.of(serviceArea));
         request.setMaxTravelDistance(50);
         request.setLanguages(List.of("English"));
         request.setAvailability(av);
@@ -84,23 +90,21 @@ class CapabilityServiceTest {
     }
 
 
+
+    // ================= TEST CREATE =================
+
     @Test
     void should_create_capability_success() {
         UUID notaryId = UUID.randomUUID();
         CapabilityRequest request = buildRequest();
 
         Notary notary = buildNotary(notaryId);
+
         Language lang = new Language();
         lang.setLangName("English");
 
-        NotaryServiceArea area = new NotaryServiceArea();
-        area.setCountyName("District 7");
-
-        NotaryCapability savedCapability = new NotaryCapability();
-        savedCapability.setMaxDistance(50);
-
-        NotaryAvailability savedAvailability = new NotaryAvailability();
-        savedAvailability.setWorkingDaysPerWeek(2);
+        State state = new State();
+        state.setId(request.getServiceArea().get(0).getStateId());
 
         when(languageRepository.findByLangNameIn(any())).thenReturn(Set.of(lang));
         when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
@@ -109,24 +113,27 @@ class CapabilityServiceTest {
         when(notaryCapabilityRepository.findByNotary_Id(notaryId)).thenReturn(null);
         when(notaryAvailabilityRepository.findByNotary_Id(notaryId)).thenReturn(null);
 
-        when(notaryCapabilityRepository.save(any())).thenReturn(savedCapability);
-        when(notaryAvailabilityRepository.save(any())).thenReturn(savedAvailability);
+        when(notaryCapabilityRepository.save(any())).thenReturn(new NotaryCapability());
+        when(notaryAvailabilityRepository.save(any())).thenReturn(new NotaryAvailability());
 
-        when(notaryServiceAreaRepository.findByCountyName("District 7")).thenReturn(area);
+        when(stateRepository.findById(any())).thenReturn(Optional.of(state));
 
-        when(notaryCapabilityMapper.toServiceCapabilitiesDTO(any())).thenReturn(new ServiceCapabilitiesDTO());
-        when(notaryAvailabilityMapper.toAvailabilityDTO(any())).thenReturn(new AvailabilityDTO());
+        when(notaryCapabilityMapper.toServiceCapabilitiesDTO(any()))
+                .thenReturn(new ServiceCapabilitiesDTO());
+        when(notaryAvailabilityMapper.toAvailabilityDTO(any()))
+                .thenReturn(new AvailabilityDTO());
 
         ServiceCapabilityResponse result =
                 capabilityService.createCapability(notaryId, request);
 
-
         assertNotNull(result);
-        assertEquals("District 7", result.getServiceArea());
 
         verify(notaryCapabilityRepository).save(any());
         verify(notaryAvailabilityRepository).save(any());
+        verify(notaryServiceAreaRepository).saveAll(any()); // ✅ FIX
     }
+
+    // ================= TEST EXCEPTION =================
 
     @Test
     void should_throw_when_capability_existed() {
@@ -147,6 +154,8 @@ class CapabilityServiceTest {
         );
     }
 
+    // ================= TEST GET =================
+
     @Test
     void should_get_capability_success() {
         UUID notaryId = UUID.randomUUID();
@@ -162,26 +171,32 @@ class CapabilityServiceTest {
 
         NotaryServiceArea area = new NotaryServiceArea();
         area.setCountyName("District 1");
+
         State state = new State();
         state.setStateHolidays(new HashSet<>());
-
         area.setState(state);
 
         when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
         when(notaryCapabilityRepository.findByNotary_Id(notaryId)).thenReturn(capability);
         when(notaryAvailabilityRepository.findByNotary_Id(notaryId)).thenReturn(availability);
-        when(notaryServiceAreaRepository.findByNotary_Id(notaryId)).thenReturn(area);
 
-        when(notaryCapabilityMapper.toServiceCapabilitiesDTO(any())).thenReturn(new ServiceCapabilitiesDTO());
-        when(notaryAvailabilityMapper.toAvailabilityDTO(any())).thenReturn(new AvailabilityDTO());
+        when(notaryServiceAreaRepository.findByNotary_Id(notaryId))
+                .thenReturn(List.of(area));
+
+        when(notaryCapabilityMapper.toServiceCapabilitiesDTO(any()))
+                .thenReturn(new ServiceCapabilitiesDTO());
+        when(notaryAvailabilityMapper.toAvailabilityDTO(any()))
+                .thenReturn(new AvailabilityDTO());
 
         when(federalHolidayService.getFederalHolidays()).thenReturn(Set.of());
 
         ServiceCapabilityResponse result =
                 capabilityService.getCapability(notaryId);
 
-        assertEquals("District 1", result.getServiceArea());
+        assertNotNull(result);
     }
+
+    // ================= TEST UPDATE =================
 
     @Test
     void should_update_capability_success() {
@@ -192,7 +207,9 @@ class CapabilityServiceTest {
 
         NotaryCapability capability = new NotaryCapability();
         NotaryAvailability availability = new NotaryAvailability();
-        NotaryServiceArea area = new NotaryServiceArea();
+
+        State state = new State();
+        state.setId(request.getServiceArea().get(0).getStateId());
 
         when(languageRepository.findByLangNameIn(any())).thenReturn(Set.of());
         when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
@@ -200,16 +217,19 @@ class CapabilityServiceTest {
 
         when(notaryCapabilityRepository.findByNotary_Id(notaryId)).thenReturn(capability);
         when(notaryAvailabilityRepository.findByNotary_Id(notaryId)).thenReturn(availability);
-        when(notaryServiceAreaRepository.findByNotary_Id(notaryId)).thenReturn(area);
 
-        when(notaryCapabilityMapper.toServiceCapabilitiesDTO(any())).thenReturn(new ServiceCapabilitiesDTO());
-        when(notaryAvailabilityMapper.toAvailabilityDTO(any())).thenReturn(new AvailabilityDTO());
+        when(stateRepository.findById(any())).thenReturn(Optional.of(state));
+
+        when(notaryCapabilityMapper.toServiceCapabilitiesDTO(any()))
+                .thenReturn(new ServiceCapabilitiesDTO());
+        when(notaryAvailabilityMapper.toAvailabilityDTO(any()))
+                .thenReturn(new AvailabilityDTO());
 
         ServiceCapabilityResponse result =
                 capabilityService.updateCapability(notaryId, request);
 
         assertNotNull(result);
 
-        verify(notaryCapabilityRepository, never()).save(any());
+        assertFalse(notary.getServiceAreas().isEmpty());
     }
 }

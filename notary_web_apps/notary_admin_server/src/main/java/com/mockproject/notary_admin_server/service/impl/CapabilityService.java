@@ -14,6 +14,7 @@ import com.mockproject.notary_admin_server.service.ICapabilityService;
 import com.mockproject.notary_admin_server.service.IFederalHolidayService;
 import com.mockproject.notary_common.constant.FixedDayOffEnum;
 import com.mockproject.notary_common.entity.Language;
+import com.mockproject.notary_common.entity.State;
 import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryAvailability;
 import com.mockproject.notary_common.entity.notary.NotaryCapability;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -48,17 +50,23 @@ public class CapabilityService implements ICapabilityService {
     private final NotaryServiceAreaRepository notaryServiceAreaRepository;
     private final NotaryAvailabilityRepository notaryAvailabilityRepository;
     private final IFederalHolidayService federalHolidayService;
-    private final NotaryRepository notariesRepository;
+    private final NotariesRepository notariesRepository;
+    private final StateRepository stateRepository;
     private final NotaryCapabilityMapper notaryCapabilityMapper;
     private final NotaryAvailabilityMapper notaryAvailabilityMapper;
 
     @Override
     public ServiceCapabilityResponse getCapability(UUID notaryId) {
 
-        Notary notary = notariesRepository.findById(notaryId).orElseThrow(()-> new RuntimeException("Lỗi notary"));
+        Notary notary = notariesRepository.findById(notaryId)
+                .orElseThrow(()-> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
+
         NotaryCapability notaryCapability = getCapabilityByNotaryOrThrow(notaryId);
-        NotaryServiceArea notaryServiceArea = getNotaryServiceAreaByNotaryOrThrow(notaryId);
+
+        List<NotaryServiceArea> notaryServiceArea = getNotaryServiceAreaByNotaryOrThrow(notaryId);
+
         NotaryAvailability notaryAvailability = getAvailabilityByNotaryOrThrow(notaryId);
+
         Set<HolidayDTO> appliedHolidays = buildAppliedHoliday(notaryServiceArea);
 
         return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea, appliedHolidays);
@@ -80,12 +88,27 @@ public class CapabilityService implements ICapabilityService {
         }
 
         NotaryCapability notaryCapability = saveCapability(createCapabilityRequest, notary);
+
         NotaryAvailability notaryAvailability = saveAvailability(createCapabilityRequest, notary);
-        NotaryServiceArea notaryServiceArea = getServiceAreaByCountyNameOrThrow(createCapabilityRequest.getServiceArea());
 
-        notaryServiceArea.setNotary(notary);
+        List<NotaryServiceArea> serviceAreas = createCapabilityRequest.getServiceArea()
+                .stream()
+                .map(item -> {
+                    State state = stateRepository.findById(item.getStateId())
+                            .orElseThrow(() -> new AppException(BaseErrorCode.STATE_NOT_FOUND));
 
-        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea, null);
+                    return NotaryServiceArea.builder()
+                            .countyName(item.getCountryName())
+                            .state(state)
+                            .notary(notary)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                })
+                .toList();
+
+        notaryServiceAreaRepository.saveAll(serviceAreas);
+
+        return buildResponse(notary, notaryCapability, notaryAvailability, serviceAreas, null);
     }
 
     @Transactional
@@ -96,22 +119,37 @@ public class CapabilityService implements ICapabilityService {
 
         NotaryCapability notaryCapability = getCapabilityByNotaryOrThrow(notaryId);
         NotaryAvailability notaryAvailability = getAvailabilityByNotaryOrThrow(notaryId);
-        NotaryServiceArea notaryServiceArea = getNotaryServiceAreaByNotaryOrThrow(notaryId);
 
         updateNotaryCapability(notaryCapability, request);
         updateNotaryAvailability(notaryAvailability, request);
 
-        notaryServiceArea.setCountyName(request.getServiceArea());
-        notaryServiceArea.setNotary(notary);
+        notary.getServiceAreas().clear();
 
-        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceArea, null);
+        List<NotaryServiceArea> notaryServiceAreasNew = request.getServiceArea()
+            .stream()
+            .map(item -> {
+                State state = stateRepository.findById(item.getStateId())
+                        .orElseThrow();
+
+                return NotaryServiceArea.builder()
+                        .countyName(item.getCountryName())
+                        .state(state)
+                        .notary(notary)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+            })
+            .toList();
+
+        notary.getServiceAreas().addAll(notaryServiceAreasNew);
+
+        return buildResponse(notary, notaryCapability, notaryAvailability, notaryServiceAreasNew, null);
     }
 
 
     private ServiceCapabilityResponse buildResponse(Notary notary,
                                                     NotaryCapability notaryCapability,
                                                     NotaryAvailability notaryAvailability,
-                                                    NotaryServiceArea notaryServiceArea,
+                                                    List<NotaryServiceArea> notaryServiceArea,
                                                     Set<HolidayDTO> appliedHolidays
                                                     ){
         AvailabilityDTO availabilityDTO = notaryAvailabilityMapper.toAvailabilityDTO(notaryAvailability);
@@ -130,14 +168,14 @@ public class CapabilityService implements ICapabilityService {
                         .stream()
                         .map(Language::getLangName)
                         .collect(Collectors.toSet()))
-                .serviceArea(notaryServiceArea.getCountyName())
+                .serviceArea(notaryServiceArea.stream().map(NotaryServiceArea::getCountyName).toList())
                 .appliedHolidays(appliedHolidays)
                 .build();
 
         return response;
     }
 
-    private Set<HolidayDTO> buildAppliedHoliday(NotaryServiceArea notaryServiceArea){
+    private Set<HolidayDTO> buildAppliedHoliday(List<NotaryServiceArea> notaryServiceAreas){
 
         Set<HolidayDTO> holidays = federalHolidayService.getFederalHolidays()
                 .stream()
@@ -147,14 +185,16 @@ public class CapabilityService implements ICapabilityService {
                             .type("FEDERAL")
                             .build()
                 ).collect(Collectors.toSet());
+        for(NotaryServiceArea notaryServiceArea : notaryServiceAreas){
+            holidays.addAll(notaryServiceArea.getState().getStateHolidays()
+                    .stream()
+                    .map(day -> HolidayDTO.builder()
+                            .date(day.getHolidayDate())
+                            .name(day.getHolidayName())
+                            .type("STATE")
+                            .build()).collect(Collectors.toSet()));
+        }
 
-        holidays.addAll(notaryServiceArea.getState().getStateHolidays()
-                .stream()
-                .map(day -> HolidayDTO.builder()
-                        .date(day.getHolidayDate())
-                        .name(day.getHolidayName())
-                        .type("STATE")
-                        .build()).collect(Collectors.toSet()));
 
         return holidays;
     }
@@ -183,9 +223,9 @@ public class CapabilityService implements ICapabilityService {
         return notaryAvailability;
     }
 
-    private NotaryServiceArea getNotaryServiceAreaByNotaryOrThrow(UUID notaryId) {
-        NotaryServiceArea notaryServiceArea = notaryServiceAreaRepository.findByNotary_Id(notaryId);
-        if (notaryServiceArea == null) {
+    private List<NotaryServiceArea> getNotaryServiceAreaByNotaryOrThrow(UUID notaryId) {
+        List<NotaryServiceArea> notaryServiceArea = notaryServiceAreaRepository.findByNotary_Id(notaryId);
+        if (notaryServiceArea.isEmpty()) {
             throw new AppException(
                     BaseErrorCode.NOTARY_SERVICE_AREA_NOT_FOUND,
                     Map.of("notaryId", notaryId)
