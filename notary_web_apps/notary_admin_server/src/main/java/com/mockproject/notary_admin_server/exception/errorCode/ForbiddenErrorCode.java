@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum BaseErrorCode implements ErrorCode {
-    TEST_ERROR_CODE("400", "Tên lỗi", HttpStatus.BAD_REQUEST),
-    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND);
+public enum ForbiddenErrorCode implements ErrorCode {
+
+    ACCESS_DENIED("403", "You do not have permission to access this resource", HttpStatus.FORBIDDEN);
 
     private final String code;
     private final String message;

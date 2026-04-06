@@ -1,15 +1,17 @@
 package com.mockproject.notary_admin_server.exception.errorCode;
 
+import org.springframework.http.HttpStatus;
+
 import com.mockproject.notary_admin_server.exception.ErrorCode;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum BaseErrorCode implements ErrorCode {
-    TEST_ERROR_CODE("400", "Tên lỗi", HttpStatus.BAD_REQUEST),
-    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND);
+public enum BadRequestErrorCode implements ErrorCode {
+    FILE_ERROR("400", "File is empty. Please upload file", HttpStatus.BAD_REQUEST),
+    INVALID_FILE("400", "Invalid file.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

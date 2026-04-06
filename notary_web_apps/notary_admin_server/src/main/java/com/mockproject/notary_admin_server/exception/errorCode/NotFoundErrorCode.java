@@ -1,15 +1,19 @@
 package com.mockproject.notary_admin_server.exception.errorCode;
 
+import org.springframework.http.HttpStatus;
+
 import com.mockproject.notary_admin_server.exception.ErrorCode;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum BaseErrorCode implements ErrorCode {
-    TEST_ERROR_CODE("400", "Tên lỗi", HttpStatus.BAD_REQUEST),
-    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND);
+public enum NotFoundErrorCode implements ErrorCode {
+
+    COMMISSION_NOT_FOUND("404", "Commission not found", HttpStatus.NOT_FOUND),
+    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND),
+    STATE_NOT_FOUND("404", "State not found", HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;

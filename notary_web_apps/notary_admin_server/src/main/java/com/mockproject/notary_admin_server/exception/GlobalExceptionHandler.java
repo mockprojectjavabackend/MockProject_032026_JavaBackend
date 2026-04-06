@@ -3,7 +3,8 @@ package com.mockproject.notary_admin_server.exception;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
+import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,21 +18,38 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalExceptionHandler {
 
-        // Core - Custom Application Exception Handler
         @ExceptionHandler(AppException.class)
-        public ResponseEntity<ApiSuccessResponse<Map<String, Object>>> handleAppException(AppException ex) {
-
+        public ResponseEntity<ApiErrorResponse> handleAppException(
+                        AppException ex,
+                        HttpServletRequest request) {
                 log.warn("AppException [{}] {}", ex.getErrorCode().getCode(), ex.getMessage());
 
-                return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
-                                .body(ApiSuccessResponse.success(
-                                                ex.getErrorCode().getHttpStatus().value(), ex.getMessage(),
-                                                ex.hasDetails() ? ex.getDetails() : null));
+                if (ex.hasDetails() && ex.getDetails() != null && !ex.getDetails().isEmpty()) {
+                        Map<String, String> errors = new LinkedHashMap<>();
+                        for (Map.Entry<String, Object> entry : ex.getDetails().entrySet()) {
+                                errors.put(entry.getKey(), String.valueOf(entry.getValue()));
+                        }
+
+                        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
+                                        .body(ApiErrorResponse.of(
+                                                        ex.getErrorCode().getHttpStatus().value(),
+                                                        request.getRequestURI(),
+                                                        errors));
+                } else {
+                        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
+                                        .body(ApiErrorResponse.of(
+                                                        ex.getErrorCode().getHttpStatus().value(),
+                                                        request.getRequestURI(),
+                                                        Map.of(
+                                                                        ex.getErrorCode().getCode(),
+                                                                        ex.getMessage())));
+                }
         }
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
-        public ResponseEntity<ApiSuccessResponse<Map<String, String>>> handleValidationException(
-                        MethodArgumentNotValidException ex) {
+        public ResponseEntity<ApiErrorResponse> handleValidationException(
+                        MethodArgumentNotValidException ex,
+                        HttpServletRequest request) {
                 Map<String, String> errors = new LinkedHashMap<>();
 
                 for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
@@ -39,14 +57,17 @@ public class GlobalExceptionHandler {
                 }
 
                 return ResponseEntity.badRequest()
-                                .body(ApiSuccessResponse.success(400, "Request validation failed", errors));
+                                .body(ApiErrorResponse.of(
+                                                400,
+                                                request.getRequestURI(),
+                                                errors));
         }
 
-        /* ================= UTIL ================= */
-
-        private ResponseEntity<ApiSuccessResponse<Void>> build(ErrorCode errorCode) {
+        private ResponseEntity<ApiErrorResponse> build(ErrorCode errorCode, HttpServletRequest request) {
                 return ResponseEntity.status(errorCode.getHttpStatus())
-                                .body(ApiSuccessResponse.success(errorCode.getHttpStatus().value(),
-                                                errorCode.getMessage(), null));
+                                .body(ApiErrorResponse.of(
+                                                errorCode.getHttpStatus().value(),
+                                                request.getRequestURI(),
+                                                Map.of(errorCode.getCode(), errorCode.getMessage())));
         }
 }
