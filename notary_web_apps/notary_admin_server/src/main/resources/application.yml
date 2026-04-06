@@ -3,9 +3,9 @@ spring:
     name: notary_admin_server
 
   datasource:
-    url: jdbc:mysql://localhost:3306/notary_db
-    username: root
-    password: 12345
+    url: ${DB_URL:jdbc:mysql://localhost:3306/notary_db}
+    username: ${USERNAME_DB}
+    password: ${PASSWORD_DB}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -17,7 +17,48 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
+  mail:
+    host: ${MAIL_HOST:smtp-relay.brevo.com}
+    port: ${MAIL_PORT:587}
+    username: ${BREVO_SMTP_LOGIN}
+    password: ${BREVO_SMTP_KEY}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+security:
+  public-endpoints: ${PUBLIC_ENDPOINTS:}
+
+jwt:
+  signerKey: ${JWT_SIGNER_KEY}
+  issuer: ${JWT_ISSUER:}
+  valid-duration: ${JWT_VALID_DURATION:}
+  refreshable-duration: ${JWT_REFRESHABLE_DURATION:}
+
+app:
+  seed:
+    enabled: ${SEED_ENABLED:false}
+    admin:
+      password: ${SEED_ADMIN_PASSWORD:}
+      email: ${SEED_ADMIN_EMAIL:}
+
+  mail:
+    from: ${MAIL_FROM:}
+    from-name: ${MAIL_FROM_NAME:}
+
+  invite:
+    base-url: ${INVITE_BASE_URL:http://localhost:3000}
+
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
-    context-path: "/server"
+    context-path: /api/v1
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}

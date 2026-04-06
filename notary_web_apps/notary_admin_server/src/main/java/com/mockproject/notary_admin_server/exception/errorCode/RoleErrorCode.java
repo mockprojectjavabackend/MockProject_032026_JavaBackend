@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum BaseErrorCode implements ErrorCode {
-    TEST_ERROR_CODE("400", "Tên lỗi", HttpStatus.BAD_REQUEST);
+public enum RoleErrorCode implements ErrorCode {
+    ROLE_NOT_FOUND("E4000", "Không tìm thấy vai trò.", HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;
