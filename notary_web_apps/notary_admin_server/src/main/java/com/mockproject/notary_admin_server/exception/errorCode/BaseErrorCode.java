@@ -21,7 +21,7 @@ public enum BaseErrorCode implements ErrorCode {
     NOTARY_NOT_FOUND("4007","Notary not found", HttpStatus.BAD_REQUEST),
     STATE_NOT_FOUND("4008","State not found", HttpStatus.BAD_REQUEST),
     ;
-    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND);
+
 
     private final String code;
     private final String message;
