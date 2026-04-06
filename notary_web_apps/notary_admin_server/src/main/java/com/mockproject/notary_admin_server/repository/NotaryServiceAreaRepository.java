@@ -25,14 +25,14 @@ import com.mockproject.notary_common.entity.notary.NotaryServiceArea;
 
  */
 
+
 @Repository
 public interface NotaryServiceAreaRepository extends JpaRepository<NotaryServiceArea, UUID>, JpaSpecificationExecutor<NotaryServiceArea> {
 
     List<NotaryServiceArea> findByNotaryId(UUID notaryId);
-
-    NotaryServiceArea findByNotary_Id(UUID id);
+    List<NotaryServiceArea> findByNotary_Id(UUID id);
     NotaryServiceArea findByCountyName(String countyName);
-  
+
     @Modifying
     @Query("UPDATE NotaryServiceArea n SET n.deleteAt = :now WHERE n.notary.id = :notaryId AND n.state.id NOT IN :stateIds AND n.deleteAt IS NULL")
     void softDeleteExcluding(@Param("notaryId") UUID notaryId,

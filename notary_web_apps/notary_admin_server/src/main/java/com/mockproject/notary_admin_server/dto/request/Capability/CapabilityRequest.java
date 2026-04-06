@@ -6,12 +6,15 @@ import com.mockproject.notary_common.constant.FixedDayOffEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
+//import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+//import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * CapabilityRequest
@@ -31,8 +34,8 @@ public class CapabilityRequest {
     @Valid
     private ServiceCapabilities serviceCapabilities;
 
-    @NotBlank(message = "Service area is required")
-    private String serviceArea;
+    @Valid
+    private List<ServiceArea> serviceArea;
 
     @Min(value = 1, message = "The travel distance must be greater than 0")
     private int maxTravelDistance;
@@ -68,5 +71,14 @@ public class CapabilityRequest {
         private LocalTime endTime;
 
         private FixedDayOffEnum fixedDayOff;
+    }
+
+    @Data
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class ServiceArea{
+        @NotBlank(message = "Country name is required")
+        private String countryName;
+        @NotNull(message = "State is required")
+        private UUID stateId;
     }
 }

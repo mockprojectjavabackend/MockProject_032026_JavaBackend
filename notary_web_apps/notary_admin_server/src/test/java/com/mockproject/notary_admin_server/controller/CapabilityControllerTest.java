@@ -69,9 +69,13 @@ class CapabilityControllerTest {
         availability.setEndTime(LocalTime.of(17, 0));
         availability.setFixedDayOff(FixedDayOffEnum.SUNDAY);
 
+        CapabilityRequest.ServiceArea area = new CapabilityRequest.ServiceArea();
+        area.setStateId(UUID.fromString("33330000-0000-0003-0000-000000000003"));
+        area.setCountryName("District 7");
+
         CapabilityRequest request = new CapabilityRequest();
         request.setServiceCapabilities(sc);
-        request.setServiceArea("District 7");
+        request.setServiceArea(List.of(area));
         request.setMaxTravelDistance(60);
         request.setLanguages(List.of("English", "Vietnamese"));
         request.setAvailability(availability);
@@ -80,28 +84,13 @@ class CapabilityControllerTest {
     }
 
 
-    @Test
-    void should_get_capability_success() throws Exception {
-        UUID notaryId = UUID.fromString("55550000-0000-0001-0000-000000000001");
-        ServiceCapabilityResponse response = new ServiceCapabilityResponse();
-        response.setServiceArea("District 3");
-
-        when(capabilityService.getCapability(notaryId)).thenReturn(response);
-
-        mockMvc.perform(get("/api/notaries/{notaryId}/service_capability", notaryId))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.service_area").value("District 3"));
-
-        verify(capabilityService).getCapability(notaryId);
-    }
-
-    @Test
-    void should_create_capability_without_availability_success() throws Exception {
-        UUID notaryId = UUID.fromString("800e8400-e29b-41d4-a716-446655440000");
-        CapabilityRequest request = buildValidRequest();
-        ServiceCapabilityResponse response = ServiceCapabilityResponse.builder()
-                .serviceArea(request.getServiceArea())
+    private ServiceCapabilityResponse buildResponse(CapabilityRequest request) {
+        return ServiceCapabilityResponse.builder()
+                .serviceArea(
+                        request.getServiceArea().stream()
+                                .map(CapabilityRequest.ServiceArea::getCountryName)
+                                .toList()
+                )
                 .maxTravelDistance(request.getMaxTravelDistance())
                 .languages(new HashSet<>(request.getLanguages()))
                 .serviceCapabilities(
@@ -122,6 +111,35 @@ class CapabilityControllerTest {
                 )
                 .appliedHolidays(null)
                 .build();
+    }
+
+    // ================= GET =================
+
+    @Test
+    void should_get_capability_success() throws Exception {
+        UUID notaryId = UUID.randomUUID();
+
+        ServiceCapabilityResponse response = new ServiceCapabilityResponse();
+        response.setServiceArea(List.of("District 3")); // ✅ FIX
+
+        when(capabilityService.getCapability(notaryId)).thenReturn(response);
+
+        mockMvc.perform(get("/api/notaries/{notaryId}/service_capability", notaryId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.service_area[0]").value("District 3"));
+
+        verify(capabilityService).getCapability(notaryId);
+    }
+
+    // ================= CREATE =================
+
+    @Test
+    void should_create_capability_success() throws Exception {
+        UUID notaryId = UUID.randomUUID();
+
+        CapabilityRequest request = buildValidRequest();
+        ServiceCapabilityResponse response = buildResponse(request);
 
         when(capabilityService.createCapability(eq(notaryId), any(CapabilityRequest.class)))
                 .thenReturn(response);
@@ -131,39 +149,21 @@ class CapabilityControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.service_area").value("District 7"))
+                .andExpect(jsonPath("$.data.service_area[0]").value("District 7"))
                 .andExpect(jsonPath("$.data.max_travel_distance").value(60))
                 .andExpect(jsonPath("$.data.languages[0]").value("English"));
 
         verify(capabilityService).createCapability(eq(notaryId), any(CapabilityRequest.class));
     }
 
+    // ================= UPDATE =================
+
     @Test
     void should_update_capability_success() throws Exception {
-        UUID notaryId = UUID.fromString("700e8400-e29b-41d4-a716-446655440000");
+        UUID notaryId = UUID.randomUUID();
+
         CapabilityRequest request = buildValidRequest();
-        ServiceCapabilityResponse response = ServiceCapabilityResponse.builder()
-                .serviceArea(request.getServiceArea())
-                .maxTravelDistance(request.getMaxTravelDistance())
-                .languages(new HashSet<>(request.getLanguages()))
-                .serviceCapabilities(
-                        ServiceCapabilitiesDTO.builder()
-                                .mobile(request.getServiceCapabilities().isMobileNotary())
-                                .ron(request.getServiceCapabilities().isRon())
-                                .loanSigning(request.getServiceCapabilities().isLoanSigning())
-                                .apostilleRelatedSupport(request.getServiceCapabilities().isApostilleSupport())
-                                .build()
-                )
-                .availability(
-                        AvailabilityDTO.builder()
-                                .working_days(request.getAvailability().getWorkingDays())
-                                .startTime(request.getAvailability().getStartTime())
-                                .endTime(request.getAvailability().getEndTime())
-                                .fixedDayOff(request.getAvailability().getFixedDayOff())
-                                .build()
-                )
-                .appliedHolidays(null)
-                .build();
+        ServiceCapabilityResponse response = buildResponse(request);
 
         when(capabilityService.updateCapability(eq(notaryId), any(CapabilityRequest.class)))
                 .thenReturn(response);
@@ -172,7 +172,8 @@ class CapabilityControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.service_area[0]").value("District 7"));
 
         verify(capabilityService).updateCapability(eq(notaryId), any(CapabilityRequest.class));
     }

@@ -1,17 +1,13 @@
 package com.mockproject.notary_admin_server.dto;
 
-import java.time.Instant;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-<<<<<<< feature/security
-=======
+import java.time.Instant;
+import java.util.Map;
 
->>>>>>> develop
 @Getter
 @Setter
 @Builder

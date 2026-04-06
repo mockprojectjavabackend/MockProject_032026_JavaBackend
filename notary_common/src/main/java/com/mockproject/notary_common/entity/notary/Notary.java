@@ -137,6 +137,10 @@ public class Notary {
     @OneToMany(mappedBy = "notary")
     private Set<NotaryStatusHistory> histories = new HashSet<>();
 
+    @Builder.Default
+    @OneToMany(mappedBy = "notary", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<NotaryServiceArea> serviceAreas = new HashSet<>();
+
     // one-way relationship
     @ManyToMany
     @JoinTable(
