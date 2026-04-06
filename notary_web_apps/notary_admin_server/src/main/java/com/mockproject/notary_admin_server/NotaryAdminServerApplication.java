@@ -11,5 +11,4 @@ public class NotaryAdminServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(NotaryAdminServerApplication.class, args);
     }
-
 }

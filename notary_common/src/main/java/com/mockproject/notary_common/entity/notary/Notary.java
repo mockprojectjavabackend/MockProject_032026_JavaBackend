@@ -28,6 +28,7 @@ import java.util.UUID;
  * -----------------------------------------------
  * 25-03-2026      PhamTam      create
  * 26-03-2026      VanTu        edit
+ * 2-04-2026       VanTien      edit
  */
 @Getter
 @Setter
@@ -58,9 +59,6 @@ public class Notary {
     @Column(length = 16)
     private String phone;
 
-    @Column(name = "email", nullable = false, unique = true, length = 64)
-    private String email;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "employment_type", length = 32)
     private EmploymentType employmentType;
@@ -70,11 +68,6 @@ public class Notary {
 
     @Column(name = "internal_notes")
     private String internalNotes;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(length = 16)
-    private UserStatus status = UserStatus.INACTIVE;
 
     @Column(length = 128)
     private String address;
@@ -87,8 +80,11 @@ public class Notary {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
 
     @Builder.Default

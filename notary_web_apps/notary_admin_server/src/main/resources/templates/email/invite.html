@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kích hoạt tài khoản Công chứng viên</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,'Segoe UI',sans-serif;color:#111827;">
+<!-- Preheader -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Bạn đã được thêm vào hệ thống quản lý công chứng. Nhấn để thiết lập mật khẩu và kích hoạt tài khoản.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;margin:0;padding:0;width:100%;">
+    <tr>
+        <td align="center" style="padding:32px 16px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;">
+
+                <!-- Header -->
+                <tr>
+                    <td align="center" style="background-color:#1d4ed8;padding:32px 24px;">
+                        <div style="font-size:12px;line-height:18px;color:#dbeafe;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:8px;">
+                            Hệ thống Quản lý Công chứng
+                        </div>
+                        <div style="font-size:28px;line-height:36px;font-weight:700;color:#ffffff;">
+                            Lời mời kích hoạt tài khoản
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                    <td style="padding:32px 32px 24px;">
+                        <p style="margin:0 0 16px;font-size:16px;line-height:24px;color:#374151;">
+                            Xin chào <strong style="color:#1d4ed8;">{{fullName}}</strong>,
+                        </p>
+
+                        <p style="margin:0 0 24px;font-size:15px;line-height:24px;color:#4b5563;">
+                            Bạn đã được thêm vào hệ thống quản lý công chứng với vai trò
+                            <strong style="color:#111827;">Công chứng viên</strong>.
+                            Vui lòng nhấn vào nút bên dưới để thiết lập mật khẩu và kích hoạt tài khoản của bạn.
+                        </p>
+
+                        <!-- Button -->
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto 28px;">
+                            <tr>
+                                <td align="center" bgcolor="#1d4ed8" style="border-radius:8px;">
+                                    <a href="{{inviteLink}}"
+                                       target="_blank"
+                                       style="display:inline-block;padding:14px 28px;font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;background-color:#1d4ed8;">
+                                        Thiết lập mật khẩu
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Divider -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="border-top:1px solid #e5e7eb;font-size:0;line-height:0;height:1px;">&nbsp;</td>
+                            </tr>
+                        </table>
+
+                        <!-- Notice box -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+                            <tr>
+                                <td style="background-color:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px 18px;">
+                                    <p style="margin:0 0 10px;font-size:13px;line-height:20px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:0.6px;">
+                                        Lưu ý bảo mật
+                                    </p>
+                                    <ul style="margin:0;padding-left:18px;font-size:14px;line-height:22px;color:#374151;">
+                                        <li>Liên kết này có hiệu lực trong <strong>{{expiryHours}} giờ</strong>.</li>
+                                        <li>Chỉ sử dụng được <strong>một lần duy nhất</strong>.</li>
+                                        <li>Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email hoặc liên hệ quản trị viên.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fallback link -->
+                        <p style="margin:24px 0 8px;font-size:13px;line-height:21px;color:#6b7280;">
+                            Nếu nút không hoạt động, hãy sao chép và dán liên kết sau vào trình duyệt:
+                        </p>
+                        <p style="margin:0;font-size:12px;line-height:20px;word-break:break-all;">
+                            <a href="{{inviteLink}}" target="_blank" style="color:#1d4ed8;text-decoration:none;">
+                                {{inviteLink}}
+                            </a>
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td align="center" style="padding:20px 24px;background-color:#f9fafb;border-top:1px solid #e5e7eb;">
+                        <p style="margin:0 0 6px;font-size:12px;line-height:18px;color:#6b7280;">
+                            Email này được gửi tự động từ hệ thống. Vui lòng không trả lời.
+                        </p>
+                        <p style="margin:0;font-size:12px;line-height:18px;color:#9ca3af;">
+                            &copy; 2026 Hệ thống Quản lý Công chứng. Bảo lưu mọi quyền.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
