@@ -1,11 +1,14 @@
 package com.mockproject.notary_common.entity.notary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mockproject.notary_common.constant.AuthorityType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -24,10 +27,10 @@ import java.util.UUID;
  * - Combination of (commission_id, authority_type) must be unique.
  * <p>
  * Modification Logs:
- * DATE         AUTHOR              DESCRIPTION
+ * DATE AUTHOR DESCRIPTION
  * ----------------------------------------------------------
- * 25-03-2026   DangQuoc            Create
- * 26-03-2026   VanTu               Edit
+ * 25-03-2026 DangQuoc Create
+ * 26-03-2026 VanTu Edit
  */
 @Getter
 @Setter
@@ -49,5 +52,7 @@ public class AuthorityScope {
 
     @ManyToOne
     @JoinColumn(name = "commission_id")
+    @JsonIgnore
     private NotaryCommission commission;
+
 }
