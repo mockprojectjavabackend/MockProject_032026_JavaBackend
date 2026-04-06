@@ -42,6 +42,9 @@ public class NotaryServiceArea {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "delete_at")
+    private LocalDateTime deleteAt;
+
     @ManyToOne
     @JoinColumn(name = "notary_id", nullable = false)
     private Notary notary;
