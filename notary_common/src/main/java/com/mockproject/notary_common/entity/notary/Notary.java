@@ -1,5 +1,6 @@
 package com.mockproject.notary_common.entity.notary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mockproject.notary_common.constant.EmploymentType;
 import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.Language;
@@ -47,7 +48,7 @@ public class Notary {
     @Column(name = "ssn", length = 32, nullable = false)
     private String ssn;
 
-    @Column(name = "full_name", length = 64, nullable = false)
+    @Column(name = "full_name", length = 255, nullable = false)
     private String fullName;
 
     @Column(name = "date_of_birth")
@@ -69,8 +70,23 @@ public class Notary {
     @Column(name = "internal_notes")
     private String internalNotes;
 
+<<<<<<< feature/security
     @Column(length = 128)
+=======
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(length = 16)
+    private UserStatus status = UserStatus.INACTIVE;
+
+    @Column(length = 255)
+>>>>>>> develop
     private String address;
+
+    @Column(length = 128)
+    private String city;
+
+    @Column(length = 128)
+    private String zipCode;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

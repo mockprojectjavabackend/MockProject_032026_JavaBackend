@@ -1,10 +1,12 @@
 package com.mockproject.notary_common.entity;
 
+import com.mockproject.notary_common.entity.notary.Notary;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -17,6 +19,7 @@ import java.util.UUID;
  * -----------------------------------------------
  * 25-03-2026      DangQuoc    create
  * 26-03-2026      VanTu       edit
+ * 27-03-2026      ThoHa       edit
  */
 @Getter
 @Setter
@@ -37,4 +40,7 @@ public class Language {
 
     @Column(name = "lang_name", nullable = false, length = 64)
     private String langName;
+
+    @ManyToMany(mappedBy = "languages")
+    private Set<Notary> notaries;
 }

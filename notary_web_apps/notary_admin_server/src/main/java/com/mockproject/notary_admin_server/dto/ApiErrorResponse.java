@@ -8,6 +8,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+<<<<<<< feature/security
+=======
+
+>>>>>>> develop
 @Getter
 @Setter
 @Builder
