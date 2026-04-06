@@ -56,7 +56,7 @@ public class NotaryCommission {
 
     @Builder.Default
     @Column(name = "is_renewal_applied")
-    private boolean isRenewalApplied = false;
+    private Boolean isRenewalApplied = false;
 
     @Column(name = "expected_renewal_date")
     private LocalDate expectedRenewalDate;

@@ -1,11 +1,29 @@
 package com.mockproject.notary_admin_server.service;
 
-import java.util.UUID;
-import jakarta.transaction.Transactional;
+import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
+import com.mockproject.notary_admin_server.dto.request.NotaryCreateRequestDTO;
+import com.mockproject.notary_admin_server.dto.request.NotaryUpdateRequestDTO;
+import com.mockproject.notary_admin_server.dto.response.*;
+import com.mockproject.notary_admin_server.repository.NotaryAuditLogRepository;
+import com.mockproject.notary_admin_server.repository.NotaryRepository;
+import com.mockproject.notary_admin_server.repository.NotarySpecification;
+import com.mockproject.notary_admin_server.repository.UserRepository;
+import com.mockproject.notary_common.constant.AuditLogAction;
+import com.mockproject.notary_common.constant.UserStatus;
+import com.mockproject.notary_common.entity.User;
+import com.mockproject.notary_common.entity.notary.Notary;
+import com.mockproject.notary_common.entity.notary.NotaryAuditLog;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.mockproject.notary_admin_server.dto.request.UpdateNotaryInfoRequest;
-import com.mockproject.notary_admin_server.dto.response.NotaryBaseResponse;
 
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * NotaryService
@@ -15,13 +33,292 @@ import com.mockproject.notary_admin_server.dto.response.NotaryBaseResponse;
  * Modification Logs:
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
- * 02-04-2026      PhamTam      create
+ * 27-03-2026      TranMinh    create
+ * 29-03-2026      TranMinh    modify
  */
-public interface NotaryService {
+@Service
+@RequiredArgsConstructor
+public class NotaryService {
+    private final NotaryRepository notaryRepository;
+    private final UserRepository userRepository;
+    private final NotaryAuditLogRepository auditLogRepository;
 
+    @Transactional(readOnly = true)
+    public ApiSuccessResponse<PagedResponse<NotaryResponseDTO>> getNotaries(
+            String status, String state, String serviceType, String search, int page, int limit) {
 
-    NotaryBaseResponse getPersonalInfo(UUID idNotary, boolean isAdmin);
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
+
+        Page<Notary> notaryPage = notaryRepository.findAll(
+                NotarySpecification.filter(status, state, serviceType, search),
+                pageable
+        );
+
+        List<NotaryResponseDTO> data = notaryPage.getContent().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+
+        PagedResponse<NotaryResponseDTO> pagedData = PagedResponse.<NotaryResponseDTO>builder()
+                .items(data)
+                .total(notaryPage.getTotalElements())
+                .page(page)
+                .limit(limit)
+                .totalPages(notaryPage.getTotalPages())
+                .build();
+
+        return ApiSuccessResponse.ok(pagedData);
+    }
+
+    private NotaryResponseDTO mapToDTO(Notary notary) {
+        return NotaryResponseDTO.builder()
+                .id(notary.getId())
+                .userId(notary.getUser() != null ? notary.getUser().getId() : null)
+                .fullName(notary.getFullName())
+                .photoUrl(notary.getPhotoUrl())
+                .email(notary.getEmail())
+                .phone(notary.getPhone())
+                .employmentType(notary.getEmploymentType() != null ? notary.getEmploymentType().name() : null)
+                .status(notary.getStatus() != null ? notary.getStatus().name() : null)
+                .startDate(notary.getStartDate())
+                .residentialAddress(notary.getAddress())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ApiSuccessResponse<NotaryDetailResponseDTO> getNotaryDetail(UUID notaryId) {
+        Notary notary = notaryRepository.findById(notaryId)
+                .orElseThrow(() -> new RuntimeException("Notary not found with ID: " + notaryId));
+
+        boolean isAdmin = checkAdminRole();
+
+        NotaryDetailResponseDTO data = mapToDetailDTO(notary, isAdmin);
+
+        return ApiSuccessResponse.ok(data);
+    }
+
+    private boolean checkAdminRole() {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        if (auth == null || !auth.isAuthenticated()) {
+//            return false;
+//        }
+//        return auth.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .anyMatch(role -> role.equalsIgnoreCase("ROLE_ADMIN") || role.equalsIgnoreCase("admin"));
+        return true;
+    }
+
+    private NotaryDetailResponseDTO mapToDetailDTO(Notary notary, boolean isAdmin) {
+        String ssn = notary.getSsn();
+        String internalNotes = notary.getInternalNotes();
+
+        if (!isAdmin) {
+            ssn = maskSsn(ssn);
+            internalNotes = null;
+        }
+
+        return NotaryDetailResponseDTO.builder()
+                .id(notary.getId())
+                .userId(notary.getUser() != null ? notary.getUser().getId() : null)
+                .ssn(ssn)
+                .fullName(notary.getFullName())
+                .dateOfBirth(notary.getDateOfBirth())
+                .photoUrl(notary.getPhotoUrl())
+                .phone(notary.getPhone())
+                .email(notary.getEmail())
+                .employmentType(notary.getEmploymentType() != null ? notary.getEmploymentType().name() : null)
+                .startDate(notary.getStartDate())
+                .internalNotes(internalNotes)
+                .status(notary.getStatus() != null ? notary.getStatus().name() : null)
+                .residentialAddress(notary.getAddress())
+                .build();
+    }
+
+    private String maskSsn(String ssn) {
+        if (ssn == null || ssn.length() <= 4) {
+            return "***-**-****";
+        }
+        String last4 = ssn.substring(ssn.length() - 4);
+        return "***-**-" + last4;
+    }
 
     @Transactional
-    NotaryBaseResponse updatePersonalInfo(UUID idNotary, UpdateNotaryInfoRequest request, boolean isAdmin);
+    public ApiSuccessResponse<NotaryCreateResponseDTO> createNotary(NotaryCreateRequestDTO request) {
+
+        if (notaryRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use by another Notary");
+        }
+        if (notaryRepository.existsByUser_Id(request.getUserId())) {
+            throw new IllegalArgumentException("This User already has a Notary profile");
+        }
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User ID not found"));
+
+        String safeInternalNotes = null;
+        if (checkAdminRole()) {
+            safeInternalNotes = request.getInternalNotes();
+        }
+
+        Notary newNotary = Notary.builder()
+                .user(user)
+                .ssn(request.getSsn())
+                .fullName(request.getFullName())
+                .dateOfBirth(request.getDateOfBirth())
+                .photoUrl(request.getPhotoUrl())
+                .phone(request.getPhone())
+                .email(request.getEmail())
+                .employmentType(request.getEmploymentType())
+                .startDate(request.getStartDate())
+                .internalNotes(safeInternalNotes)
+                .address(request.getResidentialAddress())
+                .status(UserStatus.ACTIVE)
+                .build();
+
+        Notary savedNotary = notaryRepository.save(newNotary);
+
+        saveAuditLog(newNotary, AuditLogAction.INSERT, Collections.emptyMap(), extractState(newNotary));
+
+        NotaryCreateResponseDTO responseData = NotaryCreateResponseDTO.builder()
+                .id(savedNotary.getId())
+                .userId(savedNotary.getUser().getId())
+                .fullName(savedNotary.getFullName())
+                .status(savedNotary.getStatus().name())
+                .employmentType(savedNotary.getEmploymentType().name())
+                .startDate(savedNotary.getStartDate())
+                .build();
+
+        return ApiSuccessResponse.ok(responseData);
+    }
+
+    @Transactional
+    public ApiSuccessResponse<NotaryUpdateResponseDTO> updateNotary(UUID notaryId, NotaryUpdateRequestDTO request) {
+
+        Notary notary = notaryRepository.findById(notaryId)
+                .orElseThrow(() -> new IllegalArgumentException("Notary not found with ID: " + notaryId));
+
+        List<String> updatedFields = new ArrayList<>();
+        boolean isAdmin = checkAdminRole();
+        Map<String, Object> oldState = extractState(notary);
+
+        if (request.getFullName() != null && !request.getFullName().equals(notary.getFullName())) {
+            notary.setFullName(request.getFullName());
+            updatedFields.add("fullName");
+        }
+
+        if (request.getPhotoUrl() != null && !request.getPhotoUrl().equals(notary.getPhotoUrl())) {
+            notary.setPhotoUrl(request.getPhotoUrl());
+            updatedFields.add("photoUrl");
+        }
+
+        if (request.getPhone() != null && !request.getPhone().equals(notary.getPhone())) {
+            notary.setPhone(request.getPhone());
+            updatedFields.add("phone");
+        }
+
+        if (request.getEmail() != null && !request.getEmail().equals(notary.getEmail())) {
+            if (notaryRepository.existsByEmailAndIdNot(request.getEmail(), notaryId)) {
+                throw new IllegalArgumentException("Email is already in use by another Notary");
+            }
+            notary.setEmail(request.getEmail());
+            updatedFields.add("email");
+        }
+
+        if (request.getEmploymentType() != null && request.getEmploymentType() != notary.getEmploymentType()) {
+            notary.setEmploymentType(request.getEmploymentType());
+            updatedFields.add("employmentType");
+        }
+
+        if (request.getStartDate() != null && !request.getStartDate().equals(notary.getStartDate())) {
+            notary.setStartDate(request.getStartDate());
+            updatedFields.add("startDate");
+        }
+
+        if (request.getStatus() != null && request.getStatus() != notary.getStatus()) {
+            notary.setStatus(request.getStatus());
+            updatedFields.add("status");
+        }
+
+        if (request.getResidentialAddress() != null && !request.getResidentialAddress().equals(notary.getAddress())) {
+            notary.setAddress(request.getResidentialAddress());
+            updatedFields.add("residentialAddress");
+        }
+
+        if (request.getInternalNotes() != null && !request.getInternalNotes().equals(notary.getInternalNotes())) {
+            if (isAdmin) {
+                notary.setInternalNotes(request.getInternalNotes());
+                updatedFields.add("internalNotes");
+            }
+        }
+
+        notaryRepository.save(notary);
+
+        Map<String, Object> newState = extractState(notary);
+        saveAuditLog(notary, AuditLogAction.UPDATE, oldState, newState);
+
+        NotaryUpdateResponseDTO responseData = NotaryUpdateResponseDTO.builder()
+                .id(notary.getId())
+                .updatedFields(updatedFields)
+                .updatedAt(notary.getUpdatedAt() != null ? notary.getUpdatedAt() : LocalDateTime.now())
+                .build();
+
+        return ApiSuccessResponse.ok(responseData);
+    }
+
+    @Transactional
+    public ApiSuccessResponse<Void> deleteNotary(UUID notaryId) {
+
+        Notary notary = notaryRepository.findById(notaryId)
+                .orElseThrow(() -> new IllegalArgumentException("Notary not found with ID: " + notaryId));
+
+        Map<String, Object> oldState = extractState(notary);
+
+        if (notary.getStatus() == UserStatus.DELETED) {
+            return ApiSuccessResponse.deleted();
+        }
+
+        notary.setStatus(UserStatus.DELETED);
+        notaryRepository.save(notary);
+
+        Map<String, Object> newState = extractState(notary);
+        saveAuditLog(notary, AuditLogAction.DELETE, oldState, newState);
+
+        return ApiSuccessResponse.deleted();
+    }
+
+    private void saveAuditLog(Notary notary, AuditLogAction action, Map<String, Object> oldValue, Map<String, Object> newValue) {
+        UUID currentUserId = getCurrentUserId();
+
+        NotaryAuditLog auditLog = NotaryAuditLog.builder()
+                .tableName("notaries")
+                .recordId(notary.getId())
+                .action(action)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .changeByUserId(currentUserId)
+                .notary(notary)
+                .build();
+
+        auditLogRepository.save(auditLog);
+    }
+
+    private Map<String, Object> extractState(Notary notary) {
+        Map<String, Object> state = new HashMap<>();
+        state.put("fullName", notary.getFullName());
+        state.put("email", notary.getEmail());
+        state.put("phone", notary.getPhone());
+        state.put("status", notary.getStatus() != null ? notary.getStatus().name() : null);
+        state.put("employmentType", notary.getEmploymentType() != null ? notary.getEmploymentType().name() : null);
+        state.put("address", notary.getAddress());
+        state.put("internalNotes", notary.getInternalNotes());
+        return state;
+    }
+
+    private UUID getCurrentUserId() {
+        // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        // return userDetails.getId();
+
+        return UUID.fromString("DDDD0000-0000-0000-0000-000000000001");
+    }
+
 }

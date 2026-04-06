@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mockproject.notary_admin_server.service.NotaryService;
+import com.mockproject.notary_admin_server.service.INotaryService;
 import com.mockproject.notary_admin_server.service.NotaryServiceAreaService;
 import com.mockproject.notary_admin_server.service.StateService;
 
@@ -33,7 +33,7 @@ import com.mockproject.notary_common.entity.notary.Notary;
  * 02-04-2026      PhamTam      edit
  */
 @Service
-public class NotaryServiceImpl implements NotaryService {
+public class NotaryServiceImpl implements INotaryService {
     private final NotaryRepository notaryRepository;
     private final NotaryMapper notaryMapper;
     private final NotaryServiceAreaService notaryServiceAreaService;
