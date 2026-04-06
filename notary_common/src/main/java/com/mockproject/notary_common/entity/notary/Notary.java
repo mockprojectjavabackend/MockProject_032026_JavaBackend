@@ -1,5 +1,6 @@
 package com.mockproject.notary_common.entity.notary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mockproject.notary_common.constant.EmploymentType;
 import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.Language;

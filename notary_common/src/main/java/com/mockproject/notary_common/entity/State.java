@@ -42,4 +42,8 @@ public class State {
     @OneToMany(mappedBy = "state")
     @Builder.Default
     private Set<NotaryServiceArea> notaryServiceAreas = new HashSet<>();
+
+    @OneToMany(mappedBy = "state")
+    @Builder.Default
+    private Set<StateHoliday> stateHolidays = new HashSet<>();
 }

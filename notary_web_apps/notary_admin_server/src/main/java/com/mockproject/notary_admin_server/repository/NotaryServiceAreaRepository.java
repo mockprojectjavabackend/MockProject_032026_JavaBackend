@@ -30,6 +30,9 @@ public interface NotaryServiceAreaRepository extends JpaRepository<NotaryService
 
     List<NotaryServiceArea> findByNotaryId(UUID notaryId);
 
+    NotaryServiceArea findByNotary_Id(UUID id);
+    NotaryServiceArea findByCountyName(String countyName);
+  
     @Modifying
     @Query("UPDATE NotaryServiceArea n SET n.deleteAt = :now WHERE n.notary.id = :notaryId AND n.state.id NOT IN :stateIds AND n.deleteAt IS NULL")
     void softDeleteExcluding(@Param("notaryId") UUID notaryId,
