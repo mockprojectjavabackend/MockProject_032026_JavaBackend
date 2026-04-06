@@ -1,9 +1,14 @@
 package com.mockproject.notary_admin_server.exception.errorCode;
 
+<<<<<<< feature/security
+import org.springframework.http.HttpStatus;
+
+import com.mockproject.notary_admin_server.exception.ErrorCode;
+=======
+>>>>>>> develop
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 import com.mockproject.notary_admin_server.exception.ErrorCode;
 

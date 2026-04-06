@@ -1,5 +1,6 @@
 package com.mockproject.notary_common.entity;
 
+import com.mockproject.notary_common.constant.PredefinedRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -32,6 +33,7 @@ public class Role {
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role_name", nullable = false, unique = true, length = 16)
-    private String roleName;
+    private PredefinedRole roleName;
 }
