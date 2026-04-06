@@ -28,6 +28,6 @@ server:
     context-path: "/server"
 
 cloudinary:
-  cloud-name:
-  api-key:
-  api-secret:
+  cloud-name: dy7ovxa6z
+  api-key: 883846163598763
+  api-secret: i2xyh--p7wgdqIJhOJW33DjYJNw
