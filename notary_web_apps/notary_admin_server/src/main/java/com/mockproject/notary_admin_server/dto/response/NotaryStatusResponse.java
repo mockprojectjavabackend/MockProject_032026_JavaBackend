@@ -28,7 +28,6 @@ import com.mockproject.notary_common.constant.UserStatus;
 @NoArgsConstructor
 public class NotaryStatusResponse {
     private UUID id;
-    private UserStatus status;
     @JsonProperty("update_at")
     private LocalDateTime updatedAt;
 }

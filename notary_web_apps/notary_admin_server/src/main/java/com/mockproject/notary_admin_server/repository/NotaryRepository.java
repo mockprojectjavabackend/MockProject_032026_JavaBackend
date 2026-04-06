@@ -1,27 +1,15 @@
 package com.mockproject.notary_admin_server.repository;
 
-<<<<<<< feature/security
-import java.util.UUID;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import com.mockproject.notary_common.entity.notary.Notary;
-
-@Repository
-public interface NotaryRepository extends JpaRepository<Notary, UUID> {
-    boolean existsBySsn(String ssn);
-}
-=======
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
-import org.springframework.data.jpa.repository.EntityGraph;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.mockproject.notary_common.entity.notary.Notary;
+
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
  * NotaryRepository
@@ -38,16 +26,11 @@ import com.mockproject.notary_common.entity.notary.Notary;
 
 @Repository
 public interface NotaryRepository extends JpaRepository<Notary, UUID>, JpaSpecificationExecutor<Notary> {
-
-    boolean existsByEmail(String email);
+    boolean existsBySsn(String ssn);
 
     boolean existsByUser_Id(UUID userId);
-
-    boolean existsByEmailAndIdNot(String email, UUID id);
 
     @EntityGraph(attributePaths = {"user"})
     Optional<Notary> findById(UUID id);
 }
 
-
->>>>>>> develop

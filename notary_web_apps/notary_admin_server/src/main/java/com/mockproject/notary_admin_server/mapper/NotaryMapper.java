@@ -30,9 +30,7 @@ public class NotaryMapper {
             T builder, Notary notary, List<StateResponse> states) {
         builder.id(notary.getId())
                 .fullName(notary.getFullName())
-                .email(notary.getEmail())
                 .phone(notary.getPhone())
-                .status(notary.getStatus())
                 .photoUrl(notary.getPhotoUrl())
                 .dateOfBirth(notary.getDateOfBirth())
                 .startDate(notary.getStartDate())

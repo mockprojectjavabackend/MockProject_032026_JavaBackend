@@ -49,13 +49,6 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
         Notary notary = notaryOverviewRepository.findById(notaryId)
                 .orElseThrow(() -> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
 
-        UserStatus currentStatus = notary.getStatus();
-        switch (currentStatus) {
-            case ACTIVE -> notary.setStatus(UserStatus.INACTIVE);
-            case INACTIVE -> notary.setStatus(UserStatus.BLOCKED);
-            case BLOCKED -> notary.setStatus(UserStatus.ACTIVE);
-        }
-
         notary.setUpdatedAt(LocalDateTime.now());
         notaryOverviewRepository.save(notary);
         return mapToNotaryStatusResponse(notary);
@@ -182,7 +175,6 @@ public class NotaryOverviewServiceImpl implements NotaryOverviewService {
     private NotaryStatusResponse mapToNotaryStatusResponse(Notary n) {
         return n == null ? null : new NotaryStatusResponse(
                 n.getId(),
-                n.getStatus(),
                 n.getUpdatedAt()
         );
     }

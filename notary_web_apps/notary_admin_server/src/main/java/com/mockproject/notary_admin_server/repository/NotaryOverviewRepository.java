@@ -52,11 +52,12 @@ public interface NotaryOverviewRepository extends JpaRepository<Notary, UUID> {
         d.verifiedStatus,
         d.uploadDate,
     
-        n.email,
+        u.email,
         n.phone,
         n.address
     )
     FROM Notary n
+    JOIN n.user u
     LEFT JOIN n.commissions c
     LEFT JOIN n.bonds b
     LEFT JOIN n.insurances i
@@ -66,8 +67,9 @@ public interface NotaryOverviewRepository extends JpaRepository<Notary, UUID> {
     Optional<NotaryOverviewDTO> getOverview(UUID id);
 
     @Query("""
-    SELECT new com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse(n.photoUrl,n.fullName,c.commissionNumber,n.email,n.phone,n.address,n.status)
+    SELECT new com.mockproject.notary_admin_server.dto.response.NotaryDetailResponse(n.photoUrl,n.fullName,c.commissionNumber,u.email,n.phone,n.address,u.status)
     FROM Notary n
+    JOIN n.user u
     LEFT JOIN n.commissions c
     WHERE n.id = :notaryId
     """)

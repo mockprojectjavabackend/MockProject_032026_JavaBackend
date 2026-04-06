@@ -1,10 +1,10 @@
 package com.mockproject.notary_admin_server.dto.response.capability;
 
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.mockproject.notary_common.constant.FixedDayOffEnum;
 import lombok.*;
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.annotation.JsonNaming;
 
 import java.time.LocalTime;
 import java.util.HashSet;

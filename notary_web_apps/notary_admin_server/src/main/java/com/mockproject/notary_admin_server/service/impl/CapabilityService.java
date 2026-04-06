@@ -48,7 +48,7 @@ public class CapabilityService implements ICapabilityService {
     private final NotaryServiceAreaRepository notaryServiceAreaRepository;
     private final NotaryAvailabilityRepository notaryAvailabilityRepository;
     private final IFederalHolidayService federalHolidayService;
-    private final NotariesRepository notariesRepository;
+    private final NotaryRepository notariesRepository;
     private final NotaryCapabilityMapper notaryCapabilityMapper;
     private final NotaryAvailabilityMapper notaryAvailabilityMapper;
 

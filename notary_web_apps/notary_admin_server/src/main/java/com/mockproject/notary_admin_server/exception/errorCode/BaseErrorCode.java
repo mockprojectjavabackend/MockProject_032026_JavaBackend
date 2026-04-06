@@ -1,16 +1,11 @@
 package com.mockproject.notary_admin_server.exception.errorCode;
 
-<<<<<<< feature/security
 import org.springframework.http.HttpStatus;
 
 import com.mockproject.notary_admin_server.exception.ErrorCode;
-=======
->>>>>>> develop
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import com.mockproject.notary_admin_server.exception.ErrorCode;
 
 @Getter
 @RequiredArgsConstructor
@@ -23,7 +18,9 @@ public enum BaseErrorCode implements ErrorCode {
     INVALID_LANGUAGE("40004", "Some languages are invalid", HttpStatus.BAD_REQUEST),
     NOTARY_CAPABILITY_EXISTED("4005","Notary capability already exists", HttpStatus.BAD_REQUEST),
     NOTARY_AVAILABILITY_EXISTED("4005","Notary availability", HttpStatus.BAD_REQUEST),
-    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND);
+    NOTARY_NOT_FOUND("404", "Notary not found", HttpStatus.NOT_FOUND),
+    NOTARY_ALREADY_EXISTS("4006", "A Notary profile already exists for this user", HttpStatus.BAD_REQUEST),
+    USER_NOT_FOUND("4007", "User not found", HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;

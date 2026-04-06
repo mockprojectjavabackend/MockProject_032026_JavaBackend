@@ -70,16 +70,7 @@ public class Notary {
     @Column(name = "internal_notes")
     private String internalNotes;
 
-<<<<<<< feature/security
-    @Column(length = 128)
-=======
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(length = 16)
-    private UserStatus status = UserStatus.INACTIVE;
-
     @Column(length = 255)
->>>>>>> develop
     private String address;
 
     @Column(length = 128)

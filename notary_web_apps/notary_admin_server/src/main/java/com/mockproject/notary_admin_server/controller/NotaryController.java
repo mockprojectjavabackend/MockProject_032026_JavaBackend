@@ -44,7 +44,7 @@ import com.mockproject.notary_admin_server.service.NotaryService;
 
 @RestController
 @Validated
-@RequestMapping("/api/v1")
+@RequestMapping()
 @RequiredArgsConstructor
 public class NotaryController {
     private final NotaryService notaryService;

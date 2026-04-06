@@ -28,7 +28,7 @@ import lombok.experimental.NonFinal;
 /**
  * SecurityConfig
  *
- * @version 1.1
+ * @version 1.2
  *
  * Modification Logs:
  * DATE            AUTHOR      DESCRIPTION
@@ -42,7 +42,7 @@ import lombok.experimental.NonFinal;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class SercurityConfig {
+public class SecurityConfig {
 
     CustomJwtDecoder customJwtDecoder;
 
@@ -104,4 +104,3 @@ public class SercurityConfig {
         return new BCryptPasswordEncoder(10);
     }
 }
-

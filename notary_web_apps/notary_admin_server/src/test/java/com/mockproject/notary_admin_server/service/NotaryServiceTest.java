@@ -16,8 +16,6 @@ import com.mockproject.notary_admin_server.service.impl.NotaryServiceAreaService
 import com.mockproject.notary_admin_server.service.impl.StateServiceImpl;
 
 import com.mockproject.notary_common.constant.EmploymentType;
-import com.mockproject.notary_common.constant.UserStatus;
-
 import com.mockproject.notary_admin_server.dto.request.UpdateNotaryInfoRequest;
 import com.mockproject.notary_admin_server.dto.response.NotaryAdminResponse;
 import com.mockproject.notary_admin_server.dto.response.NotaryBaseResponse;
@@ -68,10 +66,8 @@ class NotaryServiceImplTest {
         Notary n = new Notary();
         n.setId(id);
         n.setFullName("Pham Tam");
-        n.setEmail("phamtam@gmail.com");
         n.setPhone("0909123456");
         n.setSsn("123-45-6789");
-        n.setStatus(UserStatus.valueOf("ACTIVE"));
         n.setPhotoUrl("https://example.com/photo.jpg");
         n.setDateOfBirth(LocalDate.of(1995, 6, 15));
         n.setStartDate(LocalDate.of(2020, 1, 1));
@@ -97,9 +93,7 @@ class NotaryServiceImplTest {
         return NotaryPublicResponse.builder()
                 .id(n.getId())
                 .fullName(n.getFullName())
-                .email(n.getEmail())
                 .phone(n.getPhone())
-                .status(n.getStatus())
                 .photoUrl(n.getPhotoUrl())
                 .dateOfBirth(n.getDateOfBirth())
                 .startDate(n.getStartDate())
@@ -116,10 +110,8 @@ class NotaryServiceImplTest {
         return NotaryAdminResponse.builder()
                 .id(n.getId())
                 .fullName(n.getFullName())
-                .email(n.getEmail())
                 .phone(n.getPhone())
                 .ssn(n.getSsn())
-                .status(n.getStatus())
                 .photoUrl(n.getPhotoUrl())
                 .dateOfBirth(n.getDateOfBirth())
                 .startDate(n.getStartDate())
@@ -150,7 +142,6 @@ class NotaryServiceImplTest {
         assertNotNull(result);
         assertInstanceOf(NotaryPublicResponse.class, result);
         assertEquals(notary.getFullName(), result.getFullName());
-        assertEquals(notary.getEmail(), result.getEmail());
         verify(notaryMapper).toPublicResponse(any(), any());
         verify(notaryMapper, never()).toAdminResponse(any(), any());
     }
@@ -223,10 +214,8 @@ class NotaryServiceImplTest {
 
         UpdateNotaryInfoRequest request = new UpdateNotaryInfoRequest();
         request.setFullName("Nguyen Van A");
-        request.setEmail("nguyenvana@gmail.com");
         request.setPhone("0911222333");
         request.setSsn("987-65-4321");
-        request.setStatus(UserStatus.valueOf("INACTIVE"));
         request.setEmploymentType(EmploymentType.valueOf("PART_TIME"));
         request.setInternalNotes("Updated notes");
         request.setAddress("789 Admin Rd");
@@ -246,11 +235,9 @@ class NotaryServiceImplTest {
         assertEquals("Austin", notary.getCity());
         assertEquals("78701", notary.getZipCode());
         assertEquals("Nguyen Van A", notary.getFullName());
-        assertEquals("nguyenvana@gmail.com", notary.getEmail());
         assertEquals("0911222333", notary.getPhone());
         assertEquals("987-65-4321", notary.getSsn());
-        assertEquals("INACTIVE", notary.getStatus());
-        assertEquals("PART_TIME", notary.getEmploymentType());
+        assertEquals(EmploymentType.valueOf("PART_TIME"), notary.getEmploymentType());
         assertEquals("Updated notes", notary.getInternalNotes());
         verify(notaryRepository).save(notary);
         verify(notaryMapper).toAdminResponse(any(), any());

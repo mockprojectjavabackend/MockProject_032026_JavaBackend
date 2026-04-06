@@ -45,7 +45,7 @@ class CapabilityServiceTest {
     @Mock
     private IFederalHolidayService federalHolidayService;
     @Mock
-    private NotariesRepository notariesRepository;
+    private NotaryRepository notaryRepository;
     @Mock
     private NotaryCapabilityMapper notaryCapabilityMapper;
     @Mock
@@ -103,8 +103,8 @@ class CapabilityServiceTest {
         savedAvailability.setWorkingDaysPerWeek(2);
 
         when(languageRepository.findByLangNameIn(any())).thenReturn(Set.of(lang));
-        when(notariesRepository.findById(notaryId)).thenReturn(Optional.of(notary));
-        when(notariesRepository.save(any())).thenReturn(notary);
+        when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
+        when(notaryRepository.save(any())).thenReturn(notary);
 
         when(notaryCapabilityRepository.findByNotary_Id(notaryId)).thenReturn(null);
         when(notaryAvailabilityRepository.findByNotary_Id(notaryId)).thenReturn(null);
@@ -136,8 +136,8 @@ class CapabilityServiceTest {
         Notary notary = buildNotary(notaryId);
 
         when(languageRepository.findByLangNameIn(any())).thenReturn(Set.of());
-        when(notariesRepository.findById(notaryId)).thenReturn(Optional.of(notary));
-        when(notariesRepository.save(any())).thenReturn(notary);
+        when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
+        when(notaryRepository.save(any())).thenReturn(notary);
 
         when(notaryCapabilityRepository.findByNotary_Id(notaryId))
                 .thenReturn(new NotaryCapability());
@@ -167,7 +167,7 @@ class CapabilityServiceTest {
 
         area.setState(state);
 
-        when(notariesRepository.findById(notaryId)).thenReturn(Optional.of(notary));
+        when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
         when(notaryCapabilityRepository.findByNotary_Id(notaryId)).thenReturn(capability);
         when(notaryAvailabilityRepository.findByNotary_Id(notaryId)).thenReturn(availability);
         when(notaryServiceAreaRepository.findByNotary_Id(notaryId)).thenReturn(area);
@@ -195,8 +195,8 @@ class CapabilityServiceTest {
         NotaryServiceArea area = new NotaryServiceArea();
 
         when(languageRepository.findByLangNameIn(any())).thenReturn(Set.of());
-        when(notariesRepository.findById(notaryId)).thenReturn(Optional.of(notary));
-        when(notariesRepository.save(any())).thenReturn(notary);
+        when(notaryRepository.findById(notaryId)).thenReturn(Optional.of(notary));
+        when(notaryRepository.save(any())).thenReturn(notary);
 
         when(notaryCapabilityRepository.findByNotary_Id(notaryId)).thenReturn(capability);
         when(notaryAvailabilityRepository.findByNotary_Id(notaryId)).thenReturn(availability);

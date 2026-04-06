@@ -41,7 +41,7 @@ class NotaryControllerTest {
         UUID notaryId = UUID.randomUUID();
         NotaryBaseResponse mockResponse =  NotaryAdminResponse.builder().build();
 
-        when(notaryService.getPersonalInfo(notaryId, false)).thenReturn(mockResponse);
+        when(notaryService.getPersonalInfo(notaryId, true)).thenReturn(mockResponse);
 
         ResponseEntity<ApiSuccessResponse<?>> result = notaryController.getPersonalInfo(notaryId);
 
@@ -51,7 +51,7 @@ class NotaryControllerTest {
         assertNotNull(result);
         assertEquals(200, result.getStatusCode().value());
         assertNotNull(result.getBody());
-        verify(notaryService).getPersonalInfo(notaryId, false);
+        verify(notaryService).getPersonalInfo(notaryId, true);
     }
 
     // ================= UPDATE PERSONAL INFO =================

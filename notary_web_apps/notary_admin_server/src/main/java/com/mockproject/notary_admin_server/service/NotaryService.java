@@ -4,12 +4,13 @@ import com.mockproject.notary_admin_server.dto.ApiSuccessResponse;
 import com.mockproject.notary_admin_server.dto.request.NotaryCreateRequestDTO;
 import com.mockproject.notary_admin_server.dto.request.NotaryUpdateRequestDTO;
 import com.mockproject.notary_admin_server.dto.response.*;
+import com.mockproject.notary_admin_server.exception.AppException;
+import com.mockproject.notary_admin_server.exception.errorCode.BaseErrorCode;
 import com.mockproject.notary_admin_server.repository.NotaryAuditLogRepository;
 import com.mockproject.notary_admin_server.repository.NotaryRepository;
 import com.mockproject.notary_admin_server.repository.NotarySpecification;
 import com.mockproject.notary_admin_server.repository.UserRepository;
 import com.mockproject.notary_common.constant.AuditLogAction;
-import com.mockproject.notary_common.constant.UserStatus;
 import com.mockproject.notary_common.entity.User;
 import com.mockproject.notary_common.entity.notary.Notary;
 import com.mockproject.notary_common.entity.notary.NotaryAuditLog;
@@ -17,9 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -28,13 +32,14 @@ import java.util.stream.Collectors;
 /**
  * NotaryService
  *
- * @version 1.0
-
+ * @version 1.1
+ *
  * Modification Logs:
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
  * 27-03-2026      TranMinh    create
  * 29-03-2026      TranMinh    modify
+ * 07-04-2026      Refactor    fix hardcode + email check + soft-delete
  */
 @Service
 @RequiredArgsConstructor
@@ -75,10 +80,8 @@ public class NotaryService {
                 .userId(notary.getUser() != null ? notary.getUser().getId() : null)
                 .fullName(notary.getFullName())
                 .photoUrl(notary.getPhotoUrl())
-                .email(notary.getEmail())
                 .phone(notary.getPhone())
                 .employmentType(notary.getEmploymentType() != null ? notary.getEmploymentType().name() : null)
-                .status(notary.getStatus() != null ? notary.getStatus().name() : null)
                 .startDate(notary.getStartDate())
                 .residentialAddress(notary.getAddress())
                 .build();
@@ -87,7 +90,7 @@ public class NotaryService {
     @Transactional(readOnly = true)
     public ApiSuccessResponse<NotaryDetailResponseDTO> getNotaryDetail(UUID notaryId) {
         Notary notary = notaryRepository.findById(notaryId)
-                .orElseThrow(() -> new RuntimeException("Notary not found with ID: " + notaryId));
+                .orElseThrow(() -> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
 
         boolean isAdmin = checkAdminRole();
 
@@ -96,15 +99,18 @@ public class NotaryService {
         return ApiSuccessResponse.ok(data);
     }
 
+    /**
+     * Kiểm tra xem người dùng hiện tại có role ADMIN hay không
+     * thông qua SecurityContextHolder (JWT claims).
+     */
     private boolean checkAdminRole() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        if (auth == null || !auth.isAuthenticated()) {
-//            return false;
-//        }
-//        return auth.getAuthorities().stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .anyMatch(role -> role.equalsIgnoreCase("ROLE_ADMIN") || role.equalsIgnoreCase("admin"));
-        return true;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equalsIgnoreCase("ROLE_ADMIN") || role.equalsIgnoreCase("admin"));
     }
 
     private NotaryDetailResponseDTO mapToDetailDTO(Notary notary, boolean isAdmin) {
@@ -124,11 +130,9 @@ public class NotaryService {
                 .dateOfBirth(notary.getDateOfBirth())
                 .photoUrl(notary.getPhotoUrl())
                 .phone(notary.getPhone())
-                .email(notary.getEmail())
                 .employmentType(notary.getEmploymentType() != null ? notary.getEmploymentType().name() : null)
                 .startDate(notary.getStartDate())
                 .internalNotes(internalNotes)
-                .status(notary.getStatus() != null ? notary.getStatus().name() : null)
                 .residentialAddress(notary.getAddress())
                 .build();
     }
@@ -144,15 +148,12 @@ public class NotaryService {
     @Transactional
     public ApiSuccessResponse<NotaryCreateResponseDTO> createNotary(NotaryCreateRequestDTO request) {
 
-        if (notaryRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use by another Notary");
-        }
         if (notaryRepository.existsByUser_Id(request.getUserId())) {
-            throw new IllegalArgumentException("This User already has a Notary profile");
+            throw new AppException(BaseErrorCode.NOTARY_ALREADY_EXISTS);
         }
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User ID not found"));
+                .orElseThrow(() -> new AppException(BaseErrorCode.USER_NOT_FOUND));
 
         String safeInternalNotes = null;
         if (checkAdminRole()) {
@@ -166,12 +167,10 @@ public class NotaryService {
                 .dateOfBirth(request.getDateOfBirth())
                 .photoUrl(request.getPhotoUrl())
                 .phone(request.getPhone())
-                .email(request.getEmail())
                 .employmentType(request.getEmploymentType())
                 .startDate(request.getStartDate())
                 .internalNotes(safeInternalNotes)
                 .address(request.getResidentialAddress())
-                .status(UserStatus.ACTIVE)
                 .build();
 
         Notary savedNotary = notaryRepository.save(newNotary);
@@ -182,7 +181,6 @@ public class NotaryService {
                 .id(savedNotary.getId())
                 .userId(savedNotary.getUser().getId())
                 .fullName(savedNotary.getFullName())
-                .status(savedNotary.getStatus().name())
                 .employmentType(savedNotary.getEmploymentType().name())
                 .startDate(savedNotary.getStartDate())
                 .build();
@@ -194,7 +192,7 @@ public class NotaryService {
     public ApiSuccessResponse<NotaryUpdateResponseDTO> updateNotary(UUID notaryId, NotaryUpdateRequestDTO request) {
 
         Notary notary = notaryRepository.findById(notaryId)
-                .orElseThrow(() -> new IllegalArgumentException("Notary not found with ID: " + notaryId));
+                .orElseThrow(() -> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
 
         List<String> updatedFields = new ArrayList<>();
         boolean isAdmin = checkAdminRole();
@@ -215,14 +213,6 @@ public class NotaryService {
             updatedFields.add("phone");
         }
 
-        if (request.getEmail() != null && !request.getEmail().equals(notary.getEmail())) {
-            if (notaryRepository.existsByEmailAndIdNot(request.getEmail(), notaryId)) {
-                throw new IllegalArgumentException("Email is already in use by another Notary");
-            }
-            notary.setEmail(request.getEmail());
-            updatedFields.add("email");
-        }
-
         if (request.getEmploymentType() != null && request.getEmploymentType() != notary.getEmploymentType()) {
             notary.setEmploymentType(request.getEmploymentType());
             updatedFields.add("employmentType");
@@ -231,11 +221,6 @@ public class NotaryService {
         if (request.getStartDate() != null && !request.getStartDate().equals(notary.getStartDate())) {
             notary.setStartDate(request.getStartDate());
             updatedFields.add("startDate");
-        }
-
-        if (request.getStatus() != null && request.getStatus() != notary.getStatus()) {
-            notary.setStatus(request.getStatus());
-            updatedFields.add("status");
         }
 
         if (request.getResidentialAddress() != null && !request.getResidentialAddress().equals(notary.getAddress())) {
@@ -268,15 +253,12 @@ public class NotaryService {
     public ApiSuccessResponse<Void> deleteNotary(UUID notaryId) {
 
         Notary notary = notaryRepository.findById(notaryId)
-                .orElseThrow(() -> new IllegalArgumentException("Notary not found with ID: " + notaryId));
+                .orElseThrow(() -> new AppException(BaseErrorCode.NOTARY_NOT_FOUND));
 
         Map<String, Object> oldState = extractState(notary);
 
-        if (notary.getStatus() == UserStatus.DELETED) {
-            return ApiSuccessResponse.deleted();
-        }
-
-        notary.setStatus(UserStatus.DELETED);
+        // Soft-delete: ghi thời điểm xóa
+        notary.setDeletedAt(LocalDateTime.now());
         notaryRepository.save(notary);
 
         Map<String, Object> newState = extractState(notary);
@@ -304,21 +286,33 @@ public class NotaryService {
     private Map<String, Object> extractState(Notary notary) {
         Map<String, Object> state = new HashMap<>();
         state.put("fullName", notary.getFullName());
-        state.put("email", notary.getEmail());
         state.put("phone", notary.getPhone());
-        state.put("status", notary.getStatus() != null ? notary.getStatus().name() : null);
         state.put("employmentType", notary.getEmploymentType() != null ? notary.getEmploymentType().name() : null);
         state.put("address", notary.getAddress());
         state.put("internalNotes", notary.getInternalNotes());
         return state;
     }
 
+    /**
+     * Lấy userId của người dùng hiện tại từ JWT token qua SecurityContextHolder.
+     * Trả về null nếu không có session hợp lệ (cho phép audit log ghi null).
+     */
     private UUID getCurrentUserId() {
-        // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        // return userDetails.getId();
-
-        return UUID.fromString("DDDD0000-0000-0000-0000-000000000001");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof Jwt jwt) {
+            String subject = jwt.getSubject();
+            if (subject != null) {
+                try {
+                    return UUID.fromString(subject);
+                } catch (IllegalArgumentException ignored) {
+                    // subject không phải UUID format
+                }
+            }
+        }
+        return null;
     }
-
 }

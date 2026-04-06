@@ -97,10 +97,8 @@ public class NotaryServiceImpl implements INotaryService {
         if (request.getPhone() != null)          notary.setPhone(request.getPhone());
         if (request.getDateOfBirth() != null)    notary.setDateOfBirth(request.getDateOfBirth());
         if (request.getStartDate() != null)      notary.setStartDate(request.getStartDate());
-        if (request.getEmail() != null)          notary.setEmail(request.getEmail());
         if (request.getFullName() != null)       notary.setFullName(request.getFullName());
         if (request.getSsn() != null)            notary.setSsn(request.getSsn());
-        if (request.getStatus() != null)         notary.setStatus(request.getStatus());
         if (request.getInternalNotes() != null)  notary.setInternalNotes(request.getInternalNotes());
         if (request.getEmploymentType() != null) notary.setEmploymentType(request.getEmploymentType());
     }
