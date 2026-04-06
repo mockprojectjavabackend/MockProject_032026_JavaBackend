@@ -16,6 +16,8 @@ public enum BaseErrorCode implements ErrorCode {
     INVALID_LANGUAGE("40004", "Some languages are invalid", HttpStatus.BAD_REQUEST),
     NOTARY_CAPABILITY_EXISTED("4005","Notary capability already exists", HttpStatus.BAD_REQUEST),
     NOTARY_AVAILABILITY_EXISTED("4005","Notary availability", HttpStatus.BAD_REQUEST),
+    NOTARY_NOT_FOUND("4006","Notary not found", HttpStatus.BAD_REQUEST),
+    STATE_NOT_FOUND("4007","State not found", HttpStatus.BAD_REQUEST),
     ;
 
     private final String code;
