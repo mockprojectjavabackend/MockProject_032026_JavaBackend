@@ -1,15 +1,14 @@
 package com.mockproject.notary_admin_server.exception;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.mockproject.notary_admin_server.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    // Core - Custom Application Exception Handler
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiErrorResponse> handleAppException(
             AppException ex,
@@ -26,19 +24,14 @@ public class GlobalExceptionHandler {
     ) {
         log.warn("AppException [{}] {}", ex.getErrorCode().getCode(), ex.getMessage());
 
-        Map<String, String> errors;
+        Map<String, String> errors = new LinkedHashMap<>();
 
         if (ex.hasDetails() && ex.getDetails() != null && !ex.getDetails().isEmpty()) {
-            errors = ex.getDetails().entrySet().stream()
-                    .collect(java.util.stream.Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> String.valueOf(entry.getValue())
-                    ));
+            for (Map.Entry<String, Object> entry : ex.getDetails().entrySet()) {
+                errors.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
         } else {
-            errors = Map.of(
-                    ex.getErrorCode().getCode(),
-                    ex.getMessage()
-            );
+            errors.put(ex.getErrorCode().getCode(), ex.getMessage());
         }
 
         return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
@@ -49,29 +42,25 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    // Validation Exception Handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleValidationException(MethodArgumentNotValidException ex,
-                                                                      HttpServletRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            String field = error.getField();
-            field = field.replaceAll("\\[.*?\\]","");
-            errors.put(field, error.getDefaultMessage());
-        });
+    public ResponseEntity<ApiErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request
+    ) {
+        Map<String, String> errors = new LinkedHashMap<>();
 
-        ApiErrorResponse response = ApiErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
-                .path(request.getRequestURI())
-                .errors(errors)
-                .timestamp(Instant.now().toString())
-                .build()
-                ;
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            String field = fieldError.getField().replaceAll("\\[.*?\\]", "");
+            errors.putIfAbsent(field, fieldError.getDefaultMessage());
+        }
 
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.badRequest()
+                .body(ApiErrorResponse.of(
+                        400,
+                        request.getRequestURI(),
+                        errors
+                ));
     }
-
-    /* ================= UTIL ================= */
 
     private ResponseEntity<ApiErrorResponse> build(
             ErrorCode errorCode,
