@@ -16,8 +16,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiErrorResponse> handleAppException(
             AppException ex,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
         log.warn("AppException [{}] {}", ex.getErrorCode().getCode(), ex.getMessage());
 
         Map<String, String> errors;
@@ -26,32 +25,27 @@ public class GlobalExceptionHandler {
             errors = ex.getDetails().entrySet().stream()
                     .collect(java.util.stream.Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> String.valueOf(entry.getValue())
-                    ));
+                            entry -> String.valueOf(entry.getValue())));
         } else {
             errors = Map.of(
                     ex.getErrorCode().getCode(),
-                    ex.getMessage()
-            );
+                    ex.getMessage());
         }
 
         return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
                 .body(ApiErrorResponse.of(
                         ex.getErrorCode().getHttpStatus().value(),
                         request.getRequestURI(),
-                        errors
-                ));
+                        errors));
     }
 
     private ResponseEntity<ApiErrorResponse> build(
             ErrorCode errorCode,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
         return ResponseEntity.status(errorCode.getHttpStatus())
                 .body(ApiErrorResponse.of(
                         errorCode.getHttpStatus().value(),
                         request.getRequestURI(),
-                        Map.of(errorCode.getCode(), errorCode.getMessage())
-                ));
+                        Map.of(errorCode.getCode(), errorCode.getMessage())));
     }
 }
