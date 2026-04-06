@@ -46,7 +46,7 @@ public class Notary {
     @Column(name = "ssn", length = 32, nullable = false)
     private String ssn;
 
-    @Column(name = "full_name", length = 64, nullable = false)
+    @Column(name = "full_name", length = 255, nullable = false)
     private String fullName;
 
     @Column(name = "date_of_birth")
@@ -76,8 +76,14 @@ public class Notary {
     @Column(length = 16)
     private UserStatus status = UserStatus.INACTIVE;
 
-    @Column(length = 128)
+    @Column(length = 255)
     private String address;
+
+    @Column(length = 128)
+    private String city;
+
+    @Column(length = 128)
+    private String zipCode;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

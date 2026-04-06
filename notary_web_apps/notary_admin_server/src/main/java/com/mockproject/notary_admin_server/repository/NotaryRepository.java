@@ -1,13 +1,14 @@
 package com.mockproject.notary_admin_server.repository;
 
-import com.mockproject.notary_common.entity.notary.Notary;
-import org.springframework.data.jpa.repository.EntityGraph;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import java.util.UUID;
+import java.util.Optional;
+
+import com.mockproject.notary_common.entity.notary.Notary;
 
 /**
  * NotaryRepository
@@ -17,9 +18,11 @@ import java.util.UUID;
  * Modification Logs:
  * DATE            AUTHOR      DESCRIPTION
  * -----------------------------------------------
- * 27-03-2026      TranMinh    create
- * 29-03-2026      TranMinh    modify
+ * 27-03-2026      PhamTam      create
+ * * 27-03-2026      TranMinh    create
+ *  * 29-03-2026      TranMinh    modify
  */
+
 @Repository
 public interface NotaryRepository extends JpaRepository<Notary, UUID>, JpaSpecificationExecutor<Notary> {
 
@@ -32,4 +35,5 @@ public interface NotaryRepository extends JpaRepository<Notary, UUID>, JpaSpecif
     @EntityGraph(attributePaths = {"user"})
     Optional<Notary> findById(UUID id);
 }
+
 
