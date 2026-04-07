@@ -76,10 +76,10 @@ public class NotaryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping(path = "/notaries/{notary_id}")
+    @PutMapping("/notaries/{notary_id}")
     public ResponseEntity<ApiSuccessResponse<NotaryUpdateResponseDTO>> updateNotary(
             @PathVariable("notary_id") UUID notaryId,
-            @Valid NotaryUpdateRequestDTO request) {
+            @Valid @RequestBody NotaryUpdateRequestDTO request) {
         ApiSuccessResponse<NotaryUpdateResponseDTO> response = notaryService.updateNotary(notaryId, request);
         return ResponseEntity.ok(response);
     }
