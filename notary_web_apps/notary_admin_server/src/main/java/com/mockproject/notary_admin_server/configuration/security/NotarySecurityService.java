@@ -5,13 +5,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
-
 import java.util.List;
 import java.util.UUID;
-
-import com.mockproject.notary_admin_server.repository.NotaryRepository;
 import org.springframework.stereotype.Service;
 
+import com.mockproject.notary_admin_server.repository.NotaryRepository;
+
+
+/**
+ * NotarySecurityService
+ *
+ * @version 1.0
+
+ * Modification Logs:
+ * DATE            AUTHOR      DESCRIPTION
+ * -----------------------------------------------
+ * 06-04-2026      PhamTam      create
+ */
 @Service("notarySecurityService")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
