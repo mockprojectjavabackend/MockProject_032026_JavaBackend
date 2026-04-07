@@ -6,6 +6,8 @@ import com.mockproject.notary_admin_server.dto.request.NotaryUpdateRequestDTO;
 import com.mockproject.notary_admin_server.dto.response.*;
 import com.mockproject.notary_admin_server.exception.AppException;
 import com.mockproject.notary_admin_server.exception.errorCode.BaseErrorCode;
+import com.mockproject.notary_admin_server.exception.errorCode.NotaryErrorCode;
+import com.mockproject.notary_admin_server.exception.errorCode.UserErrorCode;
 import com.mockproject.notary_admin_server.repository.NotaryAuditLogRepository;
 import com.mockproject.notary_admin_server.repository.NotaryRepository;
 import com.mockproject.notary_admin_server.repository.NotarySpecification;
@@ -39,7 +41,6 @@ import java.util.stream.Collectors;
  * -----------------------------------------------
  * 27-03-2026      TranMinh    create
  * 29-03-2026      TranMinh    modify
- * 07-04-2026      Refactor    fix hardcode + email check + soft-delete
  */
 @Service
 @RequiredArgsConstructor
@@ -149,11 +150,11 @@ public class NotaryService {
     public ApiSuccessResponse<NotaryCreateResponseDTO> createNotary(NotaryCreateRequestDTO request) {
 
         if (notaryRepository.existsByUser_Id(request.getUserId())) {
-            throw new AppException(BaseErrorCode.NOTARY_ALREADY_EXISTS);
+            throw new AppException(NotaryErrorCode.NOTARY_ALREADY_EXISTS);
         }
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new AppException(BaseErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(UserErrorCode.USER_NOT_FOUND));
 
         String safeInternalNotes = null;
         if (checkAdminRole()) {
