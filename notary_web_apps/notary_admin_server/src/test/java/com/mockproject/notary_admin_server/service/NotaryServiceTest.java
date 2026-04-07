@@ -137,7 +137,7 @@ class NotaryServiceImplTest {
         when(stateService.getAllStatesByNotary(id)).thenReturn(createStates());
         when(notaryMapper.toPublicResponse(any(), any())).thenReturn(createPublicResponse(notary));
 
-        NotaryBaseResponse result = notaryService.getPersonalInfo(id, false);
+        NotaryBaseResponse result = notaryService.getPersonalInfo(id);
 
         assertNotNull(result);
         assertInstanceOf(NotaryPublicResponse.class, result);
@@ -155,7 +155,7 @@ class NotaryServiceImplTest {
         when(stateService.getAllStatesByNotary(id)).thenReturn(createStates());
         when(notaryMapper.toAdminResponse(any(), any())).thenReturn(createAdminResponse(notary));
 
-        NotaryBaseResponse result = notaryService.getPersonalInfo(id, true);
+        NotaryBaseResponse result = notaryService.getPersonalInfo(id);
 
         assertNotNull(result);
         assertInstanceOf(NotaryAdminResponse.class, result);
@@ -172,7 +172,7 @@ class NotaryServiceImplTest {
         when(notaryRepository.findById(id)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> notaryService.getPersonalInfo(id, false));
+                () -> notaryService.getPersonalInfo(id));
 
         assertEquals("Notary not found", ex.getReason());
     }
@@ -188,14 +188,13 @@ class NotaryServiceImplTest {
         request.setAddress("456 New St");
         request.setCity("Dallas");
         request.setZipCode("75001");
-        request.setPhotoUrl("https://example.com/new-photo.jpg");
 
         when(notaryRepository.findById(id)).thenReturn(Optional.of(notary));
         when(notaryRepository.save(any())).thenReturn(notary);
         when(stateService.getAllStatesByNotary(id)).thenReturn(createStates());
         when(notaryMapper.toPublicResponse(any(), any())).thenReturn(createPublicResponse(notary));
 
-        NotaryBaseResponse result = notaryService.updatePersonalInfo(id, request, false);
+        NotaryBaseResponse result = notaryService.updatePersonalInfo(id, request);
 
         assertNotNull(result);
         assertInstanceOf(NotaryPublicResponse.class, result);
@@ -227,7 +226,7 @@ class NotaryServiceImplTest {
         when(stateService.getAllStatesByNotary(id)).thenReturn(createStates());
         when(notaryMapper.toAdminResponse(any(), any())).thenReturn(createAdminResponse(notary));
 
-        NotaryBaseResponse result = notaryService.updatePersonalInfo(id, request, true);
+        NotaryBaseResponse result = notaryService.updatePersonalInfo(id, request);
 
         assertNotNull(result);
         assertInstanceOf(NotaryAdminResponse.class, result);
@@ -251,7 +250,7 @@ class NotaryServiceImplTest {
         when(notaryRepository.findById(id)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> notaryService.updatePersonalInfo(id, new UpdateNotaryInfoRequest(), false));
+                () -> notaryService.updatePersonalInfo(id, new UpdateNotaryInfoRequest()));
 
         assertEquals("Notary not found", ex.getReason());
     }

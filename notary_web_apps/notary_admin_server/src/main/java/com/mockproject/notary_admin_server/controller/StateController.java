@@ -23,7 +23,7 @@ import com.mockproject.notary_admin_server.service.impl.StateServiceImpl;
  */
 @RestController
 @Validated
-@RequestMapping("/api/states")
+@RequestMapping("/states")
 public class StateController {
 
     private final StateServiceImpl stateService;

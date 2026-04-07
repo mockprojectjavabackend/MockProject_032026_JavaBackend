@@ -21,8 +21,10 @@ import com.mockproject.notary_admin_server.dto.response.NotaryBaseResponse;
 public interface INotaryService {
 
 
-    NotaryBaseResponse getPersonalInfo(UUID idNotary, boolean isAdmin);
+    NotaryBaseResponse getPersonalInfo(UUID idNotary);
 
     @Transactional
-    NotaryBaseResponse updatePersonalInfo(UUID idNotary, UpdateNotaryInfoRequest request, boolean isAdmin);
+    NotaryBaseResponse updatePersonalInfo(UUID idNotary, UpdateNotaryInfoRequest request);
+
+
 }

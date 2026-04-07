@@ -41,7 +41,7 @@ class NotaryControllerTest {
         UUID notaryId = UUID.randomUUID();
         NotaryBaseResponse mockResponse =  NotaryAdminResponse.builder().build();
 
-        when(notaryService.getPersonalInfo(notaryId, true)).thenReturn(mockResponse);
+        when(notaryService.getPersonalInfo(notaryId)).thenReturn(mockResponse);
 
         ResponseEntity<ApiSuccessResponse<?>> result = notaryController.getPersonalInfo(notaryId);
 
@@ -51,7 +51,7 @@ class NotaryControllerTest {
         assertNotNull(result);
         assertEquals(200, result.getStatusCode().value());
         assertNotNull(result.getBody());
-        verify(notaryService).getPersonalInfo(notaryId, true);
+        verify(notaryService).getPersonalInfo(notaryId);
     }
 
     // ================= UPDATE PERSONAL INFO =================
@@ -66,7 +66,7 @@ class NotaryControllerTest {
 
         NotaryBaseResponse mockResponse =  NotaryAdminResponse.builder().build();
 
-        when(notaryService.updatePersonalInfo(notaryId, request, true)).thenReturn(mockResponse);
+        when(notaryService.updatePersonalInfo(notaryId, request)).thenReturn(mockResponse);
 
         ResponseEntity<ApiSuccessResponse<?>> result = notaryController.updatePersonalInfo(notaryId, request);
 
@@ -76,7 +76,7 @@ class NotaryControllerTest {
         assertNotNull(result);
         assertEquals(200, result.getStatusCode().value());
         assertNotNull(result.getBody());
-        verify(notaryService).updatePersonalInfo(notaryId, request, true);
+        verify(notaryService).updatePersonalInfo(notaryId, request);
     }
 
     @Test
@@ -84,7 +84,7 @@ class NotaryControllerTest {
         UUID notaryId = UUID.randomUUID();
         UpdateNotaryInfoRequest request = new UpdateNotaryInfoRequest();
 
-        when(notaryService.updatePersonalInfo(notaryId, request, true))
+        when(notaryService.updatePersonalInfo(notaryId, request))
                 .thenThrow(new RuntimeException("Service error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
