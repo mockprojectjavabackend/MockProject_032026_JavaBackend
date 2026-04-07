@@ -30,6 +30,8 @@ public interface NotaryRepository extends JpaRepository<Notary, UUID>, JpaSpecif
 
     boolean existsByUser_Id(UUID userId);
 
+    boolean existsByIdAndUserId(UUID id, UUID userId);
+
     @EntityGraph(attributePaths = {"user"})
     Optional<Notary> findById(UUID id);
 }

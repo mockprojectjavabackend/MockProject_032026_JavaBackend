@@ -6,9 +6,11 @@ import java.util.UUID;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.mockproject.notary_common.constant.EmploymentType;
 import com.mockproject.notary_common.constant.UserStatus;
+
 
 /**
  * UpdateNotaryInfoRequest
@@ -25,11 +27,9 @@ import com.mockproject.notary_common.constant.UserStatus;
 @Setter
 public class UpdateNotaryInfoRequest{
 
-        @NotBlank(message = "fullName is required")
         @Size(min = 2, max = 255, message = "Full name must be between 2 and 64 characters")
         private String fullName;
 
-        @NotBlank(message = "Phone is required")
         @Size(max = 16, message = "Phone must not exceed 16 characters")
         @Pattern(
                 regexp = "^\\+?[0-9-]+$",
@@ -37,13 +37,11 @@ public class UpdateNotaryInfoRequest{
         )
         private String phone;
 
-        @NotBlank(message = "Phone is required")
         @Email(message = "Invalid email format")
         @Size(max = 64, message = "Email must not exceed 64 characters")
         private String email;
 
-        @NotBlank(message = "Phone is required")
-        private String photoUrl;
+        private MultipartFile profilePhoto;
 
         @Past(message = "Date of birth must be in the past")
         private LocalDate dateOfBirth;
@@ -58,15 +56,12 @@ public class UpdateNotaryInfoRequest{
 
         private String internalNotes;
 
-        @NotBlank(message = "address is required")
         @Size(max = 128, message = "Address must not exceed 128 characters")
         private String address;
 
-        @NotBlank(message = "city is required")
         @Size(max = 255, message = "Address must not exceed 128 characters")
         private String city;
 
-        @NotBlank(message = "Zip code is required")
         @Pattern(
                 regexp = "^\\d{5}(-\\d{4})?$",
                 message = "Zip code must be 5 digits or in format 12345-6789"

@@ -35,6 +35,7 @@ public class NotaryMapper {
                 .dateOfBirth(notary.getDateOfBirth())
                 .startDate(notary.getStartDate())
                 .userId(notary.getUser().getId())
+                .email(notary.getUser().getEmail())
                 .createdAt(notary.getCreatedAt())
                 .updatedAt(notary.getUpdatedAt())
                 .address(notary.getAddress())
