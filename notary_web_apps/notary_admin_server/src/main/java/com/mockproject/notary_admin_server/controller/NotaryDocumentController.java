@@ -40,7 +40,7 @@ import com.mockproject.notary_admin_server.service.NotaryDocumentService;
  * 26-03-2026      AXL24       create
  */
 @RestController
-@RequestMapping("/api/notaries/{id}/documents")
+@RequestMapping("/notaries/{id}/documents")
 @RequiredArgsConstructor
 public class NotaryDocumentController {
 
